@@ -3,637 +3,1038 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>家電・PC・ホビー POSレジ</title>
+<title>Joshin POSレジシステム（全12,000商品・店員設定・毎回10P付与対応）</title>
 <style>
+  :root {
+    --joshin-red: #e60012;
+    --joshin-dark: #b8000e;
+    --blue: #005bac;
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #1f2937;
+    --border: #d1d5db;
+    --green: #059669;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
-    margin: 0; padding: 0; background: #f1f5f9; color: #0f172a;
-    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
   }
   header {
-    background: #d90429; color: white; padding: 10px 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15); flex-shrink: 0;
+    background: var(--joshin-red);
+    color: white;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  header h1 { margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-  .header-btns { display: flex; gap: 8px; }
-  .h-btn {
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-    color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem;
-    font-weight: bold; cursor: pointer;
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-badge {
+    background: white;
+    color: var(--joshin-red);
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 2px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
   }
-  .main-wrap {
-    display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px;
-    padding: 12px; flex: 1; overflow: hidden;
+  .header-title { font-weight: bold; font-size: 0.95rem; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .hdr-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
   }
-  @media (max-width: 768px) {
-    body { height: auto; overflow: auto; }
-    .main-wrap { grid-template-columns: 1fr; overflow: visible; }
+  .hdr-btn.staff {
+    background: #1f2937;
+    border-color: #fbbf24;
+    color: #fbbf24;
   }
-  .left-panel, .right-panel {
-    background: white; border-radius: 12px; padding: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; flex-direction: column; overflow: hidden;
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+    padding: 12px;
+    max-width: 1400px;
+    margin: 0 auto;
   }
-  .search-box {
-    width: 100%; padding: 10px 12px; border: 2px solid #cbd5e1; border-radius: 8px;
-    font-size: 0.95rem; margin-bottom: 10px; flex-shrink: 0;
+  @media (max-width: 850px) {
+    .main-grid { grid-template-columns: 1fr; }
   }
-  .search-box:focus { outline: none; border-color: #d90429; }
-  .cat-tabs {
-    display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px;
-    margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
+  .panel {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }
-  .cat-tab {
-    background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 20px;
-    padding: 6px 12px; font-size: 0.8rem; font-weight: bold; white-space: nowrap;
-    cursor: pointer; color: #334155;
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
   }
-  .cat-tab.active { background: #d90429; color: white; border-color: #d90429; }
+  .search-bar input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .tab-btn {
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: #f9fafb;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: var(--joshin-red);
+    color: white;
+    border-color: var(--joshin-red);
+  }
+  .maker-tabs {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .maker-btn {
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 0.78rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .maker-btn.active {
+    background: #1e40af;
+    color: white;
+  }
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: #4b5563;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .page-btns button {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
   .product-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-    gap: 8px; overflow-y: auto; padding-right: 4px; flex: 1; align-content: start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 8px;
+    max-height: 540px;
+    overflow-y: auto;
+    padding-right: 4px;
   }
   .p-card {
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 10px 8px; text-align: left; cursor: pointer;
-    display: flex; flex-direction: column; justify-content: space-between;
-    transition: transform 0.05s, background 0.1s;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.08s, border-color 0.1s;
   }
-  .p-card:active { transform: scale(0.97); background: #fee2e2; border-color: #fca5a5; }
-  .p-maker { font-size: 0.7rem; color: #64748b; font-weight: bold; margin-bottom: 2px; }
-  .p-name { font-size: 0.85rem; font-weight: bold; color: #0f172a; line-height: 1.25; margin-bottom: 6px; }
-  .p-price { font-size: 0.95rem; font-weight: bold; color: #d90429; text-align: right; }
-  .custom-add {
-    display: flex; gap: 4px; margin-top: 8px; padding-top: 8px;
-    border-top: 1px solid #e2e8f0; flex-shrink: 0;
+  .p-card:active { transform: scale(0.97); border-color: var(--joshin-red); background: #fff5f5; }
+  .p-maker { font-size: 0.7rem; color: #005bac; font-weight: bold; }
+  .p-name { font-size: 0.82rem; font-weight: bold; margin: 3px 0; line-height: 1.25; }
+  .p-price { font-size: 0.95rem; font-weight: 900; color: var(--joshin-red); text-align: right; }
+
+  /* Right Panel: Checkout */
+  .cart-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    height: 210px;
+    overflow-y: auto;
+    padding: 8px;
+    background: #fafafa;
+    margin-bottom: 10px;
   }
-  .custom-add input {
-    padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; min-width: 0;
-  }
-  .custom-add button {
-    background: #0284c7; color: white; border: none; border-radius: 6px;
-    padding: 0 12px; font-weight: bold; font-size: 0.8rem; white-space: nowrap; cursor: pointer;
-  }
-  .cart-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; font-weight: bold; flex-shrink: 0;
-  }
-  .cart-list {
-    flex: 1; overflow-y: auto; list-style: none; margin: 0; padding: 0;
-  }
-  .cart-empty { text-align: center; color: #94a3b8; margin-top: 40px; font-size: 0.9rem; }
   .cart-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 4px; border-bottom: 1px solid #f1f5f9; gap: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 4px;
+    border-bottom: 1px dashed #d1d5db;
+    font-size: 0.85rem;
   }
-  .ci-info { flex: 1; min-width: 0; }
-  .ci-name { font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ci-sub { font-size: 0.75rem; color: #64748b; }
-  .ci-ctrl { display: flex; align-items: center; gap: 4px; }
-  .qty-btn {
-    width: 26px; height: 26px; border-radius: 6px; border: 1px solid #cbd5e1;
-    background: #f8fafc; font-weight: bold; cursor: pointer;
+  .cart-item-info { flex: 1; padding-right: 6px; }
+  .cart-qty-btns { display: flex; align-items: center; gap: 4px; }
+  .q-btn {
+    width: 26px; height: 26px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
   }
-  .del-btn {
-    background: #fee2e2; color: #dc2626; border: none; border-radius: 6px;
-    padding: 4px 7px; font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-left: 2px;
+  .summary-box {
+    background: #111827;
+    color: #10b981;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: "Courier New", monospace;
+    margin-bottom: 10px;
   }
-  .calc-area {
-    background: #f8fafc; border-radius: 10px; padding: 10px; margin-top: 8px; flex-shrink: 0;
+  .sum-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.9rem; }
+  .sum-total { font-size: 1.5rem; font-weight: bold; color: #34d399; border-top: 1px solid #374151; padding-top: 6px; margin-top: 4px; }
+  .point-badge {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
   }
-  .disc-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .disc-row { display: flex; gap: 6px; margin-bottom: 10px; }
   .disc-btn {
-    flex: 1; padding: 6px 2px; border: 1px solid #cbd5e1; background: white;
-    border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+    flex: 1; padding: 6px; border: 1px solid var(--border); background: #f9fafb;
+    border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
   }
-  .disc-btn.active { background: #f59e0b; color: white; border-color: #f59e0b; }
-  .sum-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-  .total-val { font-size: 1.5rem; font-weight: bold; color: #d90429; }
-  .pt-badge { background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-  .dep-input {
-    width: 130px; padding: 6px 8px; font-size: 1.1rem; font-weight: bold;
-    text-align: right; border: 2px solid #94a3b8; border-radius: 6px;
+  .disc-btn.active { background: #f59e0b; color: white; border-color: #d97706; }
+
+  .pay-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .pay-tab {
+    flex: 1; padding: 10px; border: 2px solid var(--border); background: white;
+    border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
   }
-  .quick-cash { display: flex; gap: 4px; margin-bottom: 8px; }
-  .qc-btn {
-    flex: 1; padding: 6px 2px; background: #e0f2fe; color: #0369a1;
-    border: 1px solid #bae6fd; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+  .pay-tab.active { border-color: var(--blue); background: #eff6ff; color: var(--blue); }
+
+  .cash-area input {
+    width: 100%; padding: 10px; font-size: 1.2rem; font-weight: bold; text-align: right;
+    border: 2px solid var(--border); border-radius: 8px; margin-bottom: 8px;
   }
-  .change-val { font-size: 1.25rem; font-weight: bold; color: #059669; }
-  .action-row { display: flex; gap: 8px; margin-top: 8px; }
-  .clear-btn {
-    flex: 1; padding: 12px; background: white; border: 1px solid #cbd5e1;
-    border-radius: 8px; font-weight: bold; color: #475569; cursor: pointer;
+  .quick-cash { display: flex; gap: 6px; margin-bottom: 10px; }
+  .quick-cash button {
+    flex: 1; padding: 8px 4px; background: #e5e7eb; border: none; border-radius: 6px;
+    font-weight: bold; font-size: 0.85rem; cursor: pointer;
   }
-  .pay-btn {
-    flex: 2; padding: 12px; background: #d90429; border: none;
-    border-radius: 8px; font-weight: bold; color: white; font-size: 1.05rem; cursor: pointer;
+
+  .credit-area {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
   }
-  .sales-bar {
+  .credit-area label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; color: #334155; }
+  .credit-area input, .credit-area select {
+    width: 100%; padding: 9px; border: 1px solid #94a3b8; border-radius: 6px;
+    font-size: 1rem; margin-bottom: 8px; font-family: monospace;
+  }
+  .credit-sub-btns { display: flex; gap: 6px; margin-bottom: 8px; }
+  .credit-sub-btns button {
+    flex: 1; padding: 6px; font-size: 0.78rem; border-radius: 6px; border: 1px solid #94a3b8;
+    background: white; font-weight: bold; cursor: pointer;
+  }
+
+  .checkout-btn {
+    width: 100%; padding: 14px; background: var(--joshin-red); color: white;
+    border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+  }
+  .checkout-btn:active { background: var(--joshin-dark); }
+
+  /* Modals */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 999; justify-content: center; align-items: center; padding: 16px;
+  }
+  .modal-card {
+    background: white; border-radius: 12px; max-width: 460px; width: 100%;
+    padding: 20px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  }
+  .receipt-paper {
+    font-family: "Courier New", monospace;
+    background: #fffdf9;
+    border: 1px dashed #9ca3af;
+    padding: 14px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .staff-card-item {
     display: flex; justify-content: space-between; align-items: center;
-    margin-top: 8px; font-size: 0.75rem; color: #475569;
+    background: #f3f4f6; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px;
+    font-size: 0.85rem;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🏪 家電・PC・ホビー POSレジ</h1>
-  <div class="header-btns">
-    <button class="h-btn" onclick="resetCatalog()">🔄 商品初期化</button>
-    <button class="h-btn" id="soundToggle" onclick="toggleSound()">🔊 音: ON</button>
+  <div class="logo-area">
+    <span class="logo-badge">Joshin</span>
+    <span class="header-title">POSレジ（全12,000商品）</span>
+  </div>
+  <div class="header-actions">
+    <button class="hdr-btn" id="soundToggle" onclick="toggleSound()">🔊 音: ON</button>
+    <button class="hdr-btn staff" onclick="openStaffModal()">⚙️ 店員設定</button>
   </div>
 </header>
 
-<div class="main-wrap">
-  <div class="left-panel">
-    <input type="text" id="searchInput" class="search-box" placeholder="🔍 商品名・メーカー名で検索 (例: MacBook, ソニー, ガンプラ)" oninput="renderProducts()">
-    <div class="cat-tabs" id="catTabs"></div>
-    <div class="product-grid" id="productGrid"></div>
-    <div class="custom-add">
-      <input type="text" id="addMaker" placeholder="メーカー" style="width: 75px;">
-      <input type="text" id="addName" placeholder="自由入力の商品名" style="flex: 1;">
-      <input type="number" id="addPrice" placeholder="税込価格" style="width: 85px;">
-      <button onclick="addCustomProduct()">+ 登録</button>
+<div class="main-grid">
+  <!-- Left: Product Catalog -->
+  <div class="panel">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 商品名・メーカー・型番で12,000商品を検索..." oninput="resetAndRender()">
+      <button onclick="clearSearch()" style="padding:0 12px; border:1px solid #d1d5db; border-radius:8px; background:white; font-weight:bold;">クリア</button>
     </div>
+
+    <div class="tabs" id="catTabs"></div>
+    <div class="maker-tabs" id="makerTabs"></div>
+
+    <div class="status-bar">
+      <span id="countInfo">該当: 12,000商品 (1 / 120ページ)</span>
+      <div class="page-btns">
+        <button onclick="changePage(-1)">◀ 前へ</button>
+        <button onclick="changePage(1)">次へ ▶</button>
+      </div>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
   </div>
 
-  <div class="right-panel">
-    <div class="cart-header">
-      <span>🧾 お買上明細</span>
-      <span id="itemCount">0点</span>
+  <!-- Right: Checkout Register -->
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <strong style="font-size:1rem;">🧾 お買上明細（カート）</strong>
+      <button onclick="clearCart()" style="background:#ef4444; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:bold;">全取消</button>
     </div>
-    <ul class="cart-list" id="cartList">
-      <li class="cart-empty">左の商品をタップして追加してください</li>
-    </ul>
 
-    <div class="calc-area">
-      <div class="disc-row">
-        <button class="disc-btn active" id="d0" onclick="setDiscount(0)">割引なし</button>
-        <button class="disc-btn" id="d5" onclick="setDiscount(5)">5%OFF</button>
-        <button class="disc-btn" id="d10" onclick="setDiscount(10)">10%OFF</button>
-        <button class="disc-btn" id="d20" onclick="setDiscount(20)">20%OFF</button>
-      </div>
-      <div class="sum-row">
-        <span>合計 (税込)</span>
-        <span class="pt-badge" id="pointBadge">+0 pt 還元</span>
-        <span class="total-val" id="totalDisplay">0 円</span>
-      </div>
-      <div class="sum-row">
-        <span>お預かり</span>
-        <input type="number" id="depositInput" class="dep-input" placeholder="0" oninput="updateSummary()">
-      </div>
+    <div class="cart-box" id="cartBox">
+      <div style="text-align:center; color:#9ca3af; padding-top:70px;">左の商品をタップしてスキャンしてください</div>
+    </div>
+
+    <div class="disc-row">
+      <button class="disc-btn active" onclick="setDiscount(0, this)">割引なし</button>
+      <button class="disc-btn" onclick="setDiscount(5, this)">5% OFF</button>
+      <button class="disc-btn" onclick="setDiscount(10, this)">10% OFF</button>
+      <button class="disc-btn" onclick="setDiscount(20, this)">20% OFF</button>
+    </div>
+
+    <div class="summary-box">
+      <div class="sum-row"><span>小計（税込）</span><span id="subTotalText">¥0</span></div>
+      <div class="sum-row"><span>割引額</span><span id="discText">-¥0</span></div>
+      <div class="sum-row sum-total"><span>合計金額</span><span id="totalText">¥0</span></div>
+    </div>
+
+    <div class="point-badge">
+      <span>🎁 今回付与ポイント（毎回+10P特典）</span>
+      <span id="earnedPointsText" style="font-size:1rem; color:#d97706;">+10 P（累計: 0 P）</span>
+    </div>
+
+    <div class="pay-tabs">
+      <button class="pay-tab active" id="tabCash" onclick="switchPayMode('cash')">💴 現金払い</button>
+      <button class="pay-tab" id="tabCredit" onclick="switchPayMode('credit')">💳 クレジットカード</button>
+    </div>
+
+    <!-- Cash Payment Area -->
+    <div id="cashArea" class="cash-area">
+      <input type="number" id="cashInput" placeholder="お預かり金額を入力" oninput="updateChange()">
       <div class="quick-cash">
-        <button class="qc-btn" onclick="setExactCash()">ちょうど</button>
-        <button class="qc-btn" onclick="addCash(1000)">+1,000円</button>
-        <button class="qc-btn" onclick="addCash(5000)">+5,000円</button>
-        <button class="qc-btn" onclick="addCash(10000)">+1万円</button>
-        <button class="qc-btn" onclick="clearCash()">クリア</button>
+        <button onclick="setExactCash()">ちょうど</button>
+        <button onclick="addCash(1000)">+1,000円</button>
+        <button onclick="addCash(5000)">+5,000円</button>
+        <button onclick="addCash(10000)">+10,000円</button>
       </div>
-      <div class="sum-row" style="margin-bottom:0;">
+      <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.05rem; margin-bottom:10px; padding:6px 10px; background:#ecfdf5; border-radius:6px; color:#065f46;">
         <span>お釣り</span>
-        <span class="change-val" id="changeDisplay">0 円</span>
+        <span id="changeText">¥0</span>
       </div>
-      <div class="action-row">
-        <button class="clear-btn" onclick="clearCart()">取消</button>
-        <button class="pay-btn" onclick="completeCheckout()">会計完了</button>
+      <button class="checkout-btn" onclick="processCashCheckout()">💴 現金でお会計完了</button>
+    </div>
+
+    <!-- Credit Payment Area -->
+    <div id="creditArea" class="credit-area" style="display:none;">
+      <label>カード番号（16桁）</label>
+      <input type="text" id="ccNumberInput" maxlength="19" placeholder="例: 3867 5889 7657 1243" oninput="formatCardInput(this)">
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1;">
+          <label>セキュリティコード（3桁）</label>
+          <input type="password" id="ccCvvInput" maxlength="4" placeholder="123">
+        </div>
+        <div style="flex:1.3;">
+          <label>お支払い方法</label>
+          <select id="ccInstallment">
+            <option value="一括払い">一括払い</option>
+            <option value="2回払い">2回払い</option>
+            <option value="ボーナス一括">ボーナス一括</option>
+            <option value="リボ払い">リボ払い</option>
+          </select>
+        </div>
       </div>
-      <div class="sales-bar">
-        <span>本日売上: <strong id="salesTotal">0</strong>円 (<span id="salesCount">0</span>件)</span>
-        <button onclick="resetSales()" style="border:1px solid #cbd5e1; background:white; border-radius:4px; padding:2px 6px; font-size:0.7rem; cursor:pointer;">売上リセット</button>
+      <div class="credit-sub-btns">
+        <button type="button" onclick="autoFillDefaultCard()">📋 登録カード入力</button>
+        <button type="button" onclick="clearCreditInputs()">🧹 入力クリア</button>
       </div>
+      <div id="ccErrorMsg" style="color:#dc2626; font-size:0.82rem; font-weight:bold; margin-bottom:6px; display:none;"></div>
+      <button class="checkout-btn" style="background:var(--blue);" onclick="processCreditCheckout()">💳 カード番号を認証して会計</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="modal-card">
+    <h3 style="margin-top:0; text-align:center; color:var(--joshin-red);">🧾 お買い上げレシート</h3>
+    <div class="receipt-paper" id="receiptContent"></div>
+    <button onclick="closeReceipt()" style="width:100%; margin-top:12px; padding:12px; background:#1f2937; color:white; border:none; border-radius:8px; font-weight:bold; font-size:1rem;">閉じる（次のお客様へ）</button>
+  </div>
+</div>
+
+<!-- Staff Settings Modal -->
+<div class="modal-backdrop" id="staffModal">
+  <div class="modal-card">
+    <h3 style="margin-top:0;">⚙️ 店員設定（クレジットカード登録・売上管理）</h3>
+    <div id="staffLoginView">
+      <p style="font-size:0.9rem; color:#4b5563;">店員用暗証番号を入力してください（初期設定: <strong>0000</strong>）</p>
+      <input type="password" id="staffPinInput" maxlength="4" placeholder="0000" style="width:100%; padding:10px; font-size:1.2rem; text-align:center; border:2px solid #d1d5db; border-radius:8px; margin-bottom:10px;">
+      <div style="display:flex; gap:8px;">
+        <button onclick="closeStaffModal()" style="flex:1; padding:10px; border:1px solid #d1d5db; background:white; border-radius:8px; font-weight:bold;">キャンセル</button>
+        <button onclick="verifyStaffPin()" style="flex:1; padding:10px; background:var(--joshin-red); color:white; border:none; border-radius:8px; font-weight:bold;">ロック解除</button>
+      </div>
+    </div>
+
+    <div id="staffContentView" style="display:none;">
+      <div style="background:#fef3c7; padding:10px; border-radius:8px; margin-bottom:12px; font-size:0.85rem;">
+        <strong>📊 本日の店舗データ</strong><br>
+        売上累計: <span id="staffTotalSales">¥0</span>（<span id="staffSalesCount">0</span>件）<br>
+        会員累計ポイント: <span id="staffTotalPoints">0</span> P（毎回+10P付与中）
+      </div>
+
+      <h4 style="margin:0 0 8px 0;">➕ 新しいクレジットカードを登録</h4>
+      <input type="text" id="newCardNum" maxlength="19" placeholder="カード番号16桁 (例: 4111 2222 3333 4444)" oninput="formatCardInput(this)" style="width:100%; padding:8px; margin-bottom:6px; border:1px solid #cbd5e1; border-radius:6px;">
+      <input type="text" id="newCardHolder" placeholder="名義人ローマ字 (例: TARO JOSHIN)" style="width:100%; padding:8px; margin-bottom:6px; border:1px solid #cbd5e1; border-radius:6px;">
+      <input type="text" id="newCardCvv" maxlength="3" placeholder="セキュリティコード3桁 (例: 456)" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #cbd5e1; border-radius:6px;">
+      <button onclick="registerNewCard()" style="width:100%; padding:10px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold; margin-bottom:14px;">このカードをレジに登録する</button>
+
+      <h4 style="margin:0 0 6px 0;">💳 登録済みカード一覧</h4>
+      <div id="registeredCardsList"></div>
+
+      <button onclick="closeStaffModal()" style="width:100%; margin-top:12px; padding:10px; background:#374151; color:white; border:none; border-radius:8px; font-weight:bold;">設定を閉じる</button>
     </div>
   </div>
 </div>
 
 <script>
-const DEFAULT_ITEMS = [
-  { id: 101, cat: "パソコン・タブレット", maker: "Apple", name: "MacBook Air 13インチ (M3)", price: 164800 },
-  { id: 102, cat: "パソコン・タブレット", maker: "Apple", name: "MacBook Pro 14インチ (M4)", price: 248800 },
-  { id: 103, cat: "パソコン・タブレット", maker: "Apple", name: "iPad Air 11インチ (M2)", price: 98800 },
-  { id: 104, cat: "パソコン・タブレット", maker: "Apple", name: "iPad Pro 11インチ (M4)", price: 168800 },
-  { id: 105, cat: "パソコン・タブレット", maker: "NEC", name: "LAVIE N15 ノートPC", price: 139800 },
-  { id: 106, cat: "パソコン・タブレット", maker: "富士通", name: "FMV LIFEBOOK AHシリーズ", price: 154800 },
-  { id: 107, cat: "パソコン・タブレット", maker: "Microsoft", name: "Surface Laptop 第7世代", price: 184800 },
-  { id: 108, cat: "パソコン・タブレット", maker: "ASUS", name: "ROG Zephyrus ゲーミングPC", price: 269800 },
-  { id: 109, cat: "パソコン・タブレット", maker: "サードウェーブ", name: "GALLERIA ゲーミングデスクトップ", price: 229800 },
-  { id: 110, cat: "パソコン・タブレット", maker: "Lenovo", name: "IdeaPad Slim 5 ノートPC", price: 89800 },
-  { id: 111, cat: "パソコン・タブレット", maker: "DELL", name: "Inspiron 14 ノートPC", price: 94800 },
-  { id: 112, cat: "パソコン・タブレット", maker: "HP", name: "Pavilion Aero 13 超軽量PC", price: 119800 },
-  { id: 201, cat: "PC周辺機器・スマホ", maker: "Apple", name: "iPhone 16 (128GB) SIMフリー", price: 124800 },
-  { id: 202, cat: "PC周辺機器・スマホ", maker: "Apple", name: "iPhone 16 Pro (256GB)", price: 174800 },
-  { id: 203, cat: "PC周辺機器・スマホ", maker: "Google", name: "Pixel 9 (128GB) SIMフリー", price: 128900 },
-  { id: 204, cat: "PC周辺機器・スマホ", maker: "Apple", name: "Apple Watch Series 10", price: 59800 },
-  { id: 205, cat: "PC周辺機器・スマホ", maker: "エプソン", name: "カラリオ A4複合機プリンター", price: 24800 },
-  { id: 206, cat: "PC周辺機器・スマホ", maker: "ロジクール", name: "MX Master 3S ワイヤレスマウス", price: 16900 },
-  { id: 207, cat: "PC周辺機器・スマホ", maker: "バッファロー", name: "Wi-Fi 7 対応ルーター", price: 19800 },
-  { id: 208, cat: "PC周辺機器・スマホ", maker: "I-O DATA", name: "27インチ 4K液晶モニター", price: 42800 },
-  { id: 301, cat: "テレビ・カメラ・音", maker: "ソニー", name: "BRAVIA 55V型 4K有機ELテレビ", price: 248000 },
-  { id: 302, cat: "テレビ・カメラ・音", maker: "シャープ", name: "AQUOS 50V型 4K液晶テレビ", price: 138000 },
-  { id: 303, cat: "テレビ・カメラ・音", maker: "TVS REGZA", name: "REGZA 65V型 4KミニLEDテレビ", price: 278000 },
-  { id: 304, cat: "テレビ・カメラ・音", maker: "パナソニック", name: "ディーガ 2TB ブルーレイレコーダー", price: 64800 },
-  { id: 305, cat: "テレビ・カメラ・音", maker: "ソニー", name: "WF-1000XM5 ワイヤレスイヤホン", price: 36300 },
-  { id: 306, cat: "テレビ・カメラ・音", maker: "Apple", name: "AirPods Pro (第2世代)", price: 39800 },
-  { id: 307, cat: "テレビ・カメラ・音", maker: "ソニー", name: "α7 IV ミラーレス一眼カメラ", price: 328900 },
-  { id: 308, cat: "テレビ・カメラ・音", maker: "BOSE", name: "SoundLink Flex スピーカー", price: 19800 },
-  { id: 401, cat: "冷蔵庫・洗濯機・空調", maker: "パナソニック", name: "ななめドラム洗濯乾燥機 LXシリーズ", price: 298000 },
-  { id: 402, cat: "冷蔵庫・洗濯機・空調", maker: "日立", name: "ビートウォッシュ 全自動洗濯機 10kg", price: 118000 },
-  { id: 403, cat: "冷蔵庫・洗濯機・空調", maker: "日立", name: "大型冷蔵庫 540L 真空チルド", price: 238000 },
-  { id: 404, cat: "冷蔵庫・洗濯機・空調", maker: "三菱電機", name: "置けるスマート大容量 冷蔵庫 470L", price: 198000 },
-  { id: 405, cat: "冷蔵庫・洗濯機・空調", maker: "ダイキン", name: "うるさらX エアコン 14畳用", price: 248000 },
-  { id: 406, cat: "冷蔵庫・洗濯機・空調", maker: "シャープ", name: "プラズマクラスター 加湿空気清浄機", price: 44800 },
-  { id: 407, cat: "冷蔵庫・洗濯機・空調", maker: "ダイソン", name: "Purifier Hot+Cool 空気清浄ファン", price: 79800 },
-  { id: 501, cat: "キッチン・掃除・美容", maker: "象印", name: "炎舞炊き 圧力IH炊飯ジャー 5.5合", price: 89800 },
-  { id: 502, cat: "キッチン・掃除・美容", maker: "シャープ", name: "ヘルシオ ウォーターオーブン 30L", price: 118000 },
-  { id: 503, cat: "キッチン・掃除・美容", maker: "バルミューダ", name: "BALMUDA The Toaster Pro", price: 37400 },
-  { id: 504, cat: "キッチン・掃除・美容", maker: "デロンギ", name: "マグニフィカS 全自動コーヒーマシン", price: 69800 },
-  { id: 505, cat: "キッチン・掃除・美容", maker: "ダイソン", name: "V12 Detect Slim コードレス掃除機", price: 76800 },
-  { id: 506, cat: "キッチン・掃除・美容", maker: "iRobot", name: "ルンバ j7+ ロボット掃除機", price: 99800 },
-  { id: 507, cat: "キッチン・掃除・美容", maker: "パナソニック", name: "ヘアードライヤー ナノケア 高浸透", price: 38610 },
-  { id: 508, cat: "キッチン・掃除・美容", maker: "ブラウン", name: "シリーズ9 PRO+ 電気シェーバー", price: 49800 },
-  { id: 601, cat: "ゲーム・ホビー・日用品", maker: "任天堂", name: "Nintendo Switch (有機ELモデル)", price: 37980 },
-  { id: 602, cat: "ゲーム・ホビー・日用品", maker: "SIE", name: "PlayStation 5 本体 (通常版)", price: 79980 },
-  { id: 603, cat: "ゲーム・ホビー・日用品", maker: "任天堂", name: "Switch 新作ソフト (標準価格)", price: 6578 },
-  { id: 604, cat: "ゲーム・ホビー・日用品", maker: "BANDAI", name: "HG 1/144 ガンプラシリーズ", price: 2420 },
-  { id: 605, cat: "ゲーム・ホビー・日用品", maker: "BANDAI", name: "MG 1/100 マスターグレード模型", price: 5500 },
-  { id: 606, cat: "ゲーム・ホビー・日用品", maker: "タカラトミー", name: "トミカ 定番ミニカー 各種", price: 550 },
-  { id: 607, cat: "ゲーム・ホビー・日用品", maker: "KATO", name: "Nゲージ 鉄道模型 スターターセット", price: 18700 },
-  { id: 608, cat: "ゲーム・ホビー・日用品", maker: "パナソニック", name: "エボルタNEO 単3乾電池 12本パック", price: 1480 },
-  { id: 609, cat: "ゲーム・ホビー・日用品", maker: "エレコム", name: "雷ガード 6個口 電源タップ 2m", price: 1980 },
-  { id: 610, cat: "ゲーム・ホビー・日用品", maker: "花王", name: "アタックZERO 洗濯洗剤 詰替特大", price: 1180 }
-];
-
-let products = [];
-try {
-  const saved = JSON.parse(localStorage.getItem('joshin_pos_v9'));
-  if (Array.isArray(saved) && saved.length > 0) {
-    products = saved;
-  } else {
-    products = DEFAULT_ITEMS.slice();
-    localStorage.setItem('joshin_pos_v9', JSON.stringify(products));
-  }
-} catch (e) {
-  products = DEFAULT_ITEMS.slice();
-}
-
-let currentCat = "すべて";
-let cart = [];
-let discountRate = 0;
-let soundOn = true;
+// --- Audio Engine (Web Audio API) ---
+let soundEnabled = true;
 let audioCtx = null;
-let sales = { total: 0, count: 0 };
 
-try {
-  const s = JSON.parse(localStorage.getItem('joshin_sales_v9'));
-  if (s && typeof s.total === 'number') sales = s;
-} catch (e) {}
-
-function playTone(type) {
-  if (!soundOn) return;
+function playBeep(freq = 1200, duration = 0.08, type = 'sine', delay = 0) {
+  if (!soundEnabled) return;
   try {
-    if (!audioCtx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
-    if (type === 'scan') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1950, now);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.start(now);
-      osc.stop(now + 0.08);
-    } else if (type === 'tap') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(700, now);
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-      osc.start(now);
-      osc.stop(now + 0.05);
-    } else if (type === 'cash') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1046.5, now);
-      osc.frequency.setValueAtTime(1318.5, now + 0.09);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-      osc.start(now);
-      osc.stop(now + 0.35);
-    }
+    osc.start(audioCtx.currentTime + delay);
+    osc.stop(audioCtx.currentTime + delay + duration);
   } catch (e) {}
 }
 
-function toggleSound() {
-  soundOn = !soundOn;
-  document.getElementById('soundToggle').textContent = soundOn ? '🔊 音: ON' : '🔇 音: OFF';
-  if (soundOn) playTone('tap');
+function playScanSound() { playBeep(1450, 0.07, 'square', 0); }
+function playRegisterSound() {
+  playBeep(1046.5, 0.12, 'triangle', 0);
+  playBeep(1318.5, 0.25, 'triangle', 0.11);
+}
+function playErrorSound() {
+  playBeep(220, 0.15, 'sawtooth', 0);
+  playBeep(180, 0.2, 'sawtooth', 0.16);
 }
 
-function renderTabs() {
-  const cats = ["すべて", "パソコン・タブレット", "PC周辺機器・スマホ", "テレビ・カメラ・音", "冷蔵庫・洗濯機・空調", "キッチン・掃除・美容", "ゲーム・ホビー・日用品"];
-  const wrap = document.getElementById('catTabs');
-  wrap.innerHTML = '';
-  cats.forEach(c => {
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊 音: ON' : '🔇 音: OFF';
+  if (soundEnabled) playScanSound();
+}
+
+// --- 12,000 Products Generator ---
+const CATEGORIES = [
+  'すべて', 'パソコン', 'タブレット・スマホ', 'テレビ・映像', '冷蔵庫・洗濯機',
+  'エアコン・空調', 'キッチン・調理', '掃除機・美容', 'カメラ・オーディオ',
+  'ゲーム', 'ホビー・模型', 'PC周辺・消耗品'
+];
+
+const MAKERS = [
+  'すべて', 'Apple', 'ソニー', 'パナソニック', 'シャープ', '日立', '東芝・REGZA',
+  '三菱電機', 'ダイキン', 'NEC', '富士通', 'ASUS', 'DELL', 'HP', 'Lenovo',
+  '象印', 'バルミューダ', 'ダイソン', '任天堂', 'SIE', 'バンダイ', 'タカラトミー', 'エレコム'
+];
+
+function generate12000Products() {
+  const templates = [
+    { cat: 'パソコン', maker: 'Apple', base: 'MacBook Air 13インチ M3', price: 164800, vars: ['8GB/256GB シルバー', '16GB/512GB ミッドナイト', '16GB/512GB スターライト', '24GB/1TB スペースグレイ'] },
+    { cat: 'パソコン', maker: 'Apple', base: 'MacBook Pro 14インチ M4', price: 248800, vars: ['16GB/512GB スペースブラック', '24GB/1TB シルバー', '32GB/1TB スペースブラック'] },
+    { cat: 'パソコン', maker: 'NEC', base: 'LAVIE N15 ノートPC', price: 139800, vars: ['Core i5/16GB/512GB パールホワイト', 'Core i7/16GB/512GB ネイビーブルー', 'Ryzen7/16GB/1TB カームブラック'] },
+    { cat: 'パソコン', maker: '富士通', base: 'FMV LIFEBOOK AHシリーズ', price: 149800, vars: ['Core i5/16GB/512GB プレミアムホワイト', 'Core i7/16GB/512GB ブライトブラック', 'Core i7/32GB/1TB ガーネットレッド'] },
+    { cat: 'パソコン', maker: 'ASUS', base: 'ROG Strix ゲーミングノート', price: 229800, vars: ['Core i7/RTX4060/16GB', 'Core i9/RTX4070/32GB', 'Ryzen9/RTX4080/32GB'] },
+    { cat: 'パソコン', maker: 'DELL', base: 'XPS 13 プレミアムノート', price: 189800, vars: ['Core Ultra 7/16GB/512GB', 'Core Ultra 7/32GB/1TB'] },
+    { cat: 'パソコン', maker: 'HP', base: 'Pavilion Aero 13 超軽量PC', price: 124800, vars: ['Ryzen 5/16GB/512GB セラミックホワイト', 'Ryzen 7/16GB/1TB ピンクベージュ'] },
+    { cat: 'パソコン', maker: 'Lenovo', base: 'ThinkPad X1 Carbon', price: 218000, vars: ['Core i5/16GB/512GB', 'Core i7/32GB/1TB'] },
+    { cat: 'タブレット・スマホ', maker: 'Apple', base: 'iPad Air 11インチ (M2)', price: 98800, vars: ['128GB ブルー', '256GB スターライト', '512GB パープル', '1TB スペースグレイ'] },
+    { cat: 'タブレット・スマホ', maker: 'Apple', base: 'iPhone 16 Pro SIMフリー', price: 159800, vars: ['128GB デザートチタニウム', '256GB ナチュラルチタニウム', '512GB ブラックチタニウム'] },
+    { cat: 'テレビ・映像', maker: 'ソニー', base: 'BRAVIA 4K有機ELテレビ', price: 268000, vars: ['55V型 XR80', '65V型 XR80', '77V型 A95L'] },
+    { cat: 'テレビ・映像', maker: '東芝・REGZA', base: 'REGZA 4K液晶 タイムシフト', price: 158000, vars: ['43V型 Z670N', '50V型 Z670N', '55V型 Z870N', '65V型 Z870N'] },
+    { cat: 'テレビ・映像', maker: 'シャープ', base: 'AQUOS 4K 液晶テレビ', price: 118000, vars: ['42V型 GN2', '50V型 GN1', '55V型 GP1'] },
+    { cat: '冷蔵庫・洗濯機', maker: 'パナソニック', base: 'ななめドラム洗濯乾燥機 LXシリーズ', price: 298000, vars: ['左開き 12kg マットホワイト', '右開き 12kg サンドグレージュ'] },
+    { cat: '冷蔵庫・洗濯機', maker: '日立', base: 'まんなか冷凍 冷蔵庫 Hタイプ', price: 218000, vars: ['470L クリスタルホワイト', '540L ライトゴールド', '617L グラファイトシルバー'] },
+    { cat: '冷蔵庫・洗濯機', maker: '三菱電機', base: '切れちゃう瞬冷凍 冷蔵庫', price: 198000, vars: ['455L グレイングレージュ', '517L フロストグレインブラウン'] },
+    { cat: 'エアコン・空調', maker: 'ダイキン', base: 'うるさらX RXシリーズ エアコン', price: 188000, vars: ['6畳用 ホワイト', '10畳用 ホワイト', '14畳用 ホワイト', '18畳用 ベージュ'] },
+    { cat: 'エアコン・空調', maker: 'シャープ', base: 'プラズマクラスター 加湿空気清浄機', price: 42800, vars: ['23畳用 ホワイト', '34畳用 ブラウン'] },
+    { cat: 'キッチン・調理', maker: '象印', base: '圧力IH炊飯ジャー 炎舞炊き', price: 79800, vars: ['5.5合 濃墨', '5.5合 絹白', '1升 濃墨'] },
+    { cat: 'キッチン・調理', maker: 'バルミューダ', base: 'BALMUDA The Toaster Pro', price: 37400, vars: ['ブラック', 'ホワイト', 'サラマンダーブラック'] },
+    { cat: '掃除機・美容', maker: 'ダイソン', base: 'Dyson V12 Detect Slim', price: 74800, vars: ['Fluffy', 'Absolute', 'Submarine'] },
+    { cat: '掃除機・美容', maker: 'パナソニック', base: 'ヘアードライヤー ナノケア', price: 38600, vars: ['ディープネイビー', 'ラベンダーピンク', 'ウォームホワイト'] },
+    { cat: 'カメラ・オーディオ', maker: 'ソニー', base: 'α7 IV ミラーレス一眼カメラ', price: 328000, vars: ['ボディ単体', 'ズームレンズキット'] },
+    { cat: 'カメラ・オーディオ', maker: 'ソニー', base: 'ワイヤレスイヤホン WF-1000XM5', price: 36800, vars: ['ブラック', 'プラチナシルバー'] },
+    { cat: 'ゲーム', maker: '任天堂', base: 'Nintendo Switch 有機ELモデル', price: 37980, vars: ['ホワイト', 'ネオンブルー・ネオンレッド', 'マリオレッド'] },
+    { cat: 'ゲーム', maker: 'SIE', base: 'PlayStation 5 本体', price: 79980, vars: ['通常版 ディスクドライブ搭載', 'デジタル・エディション'] },
+    { cat: 'ホビー・模型', maker: 'バンダイ', base: 'HG 1/144 ガンプラシリーズ', price: 2420, vars: ['ライジングフリーダム', 'マイティーストライクフリーダム', 'エアリアル', 'キャリバーン'] },
+    { cat: 'ホビー・模型', maker: 'タカラトミー', base: 'トミカ プレミアム・定番車両', price: 550, vars: ['日産 GT-R', 'トヨタ クラウン パトカー', '消防はしご車', '新幹線 N700S'] },
+    { cat: 'PC周辺・消耗品', maker: 'エレコム', base: 'USB-C 急速充電器・ケーブルセット', price: 2980, vars: ['30W ホワイト', '65W ブラック', '100W 3ポート'] }
+  ];
+
+  const list = [];
+  let id = 1;
+  // Build 12,000 distinct items deterministically
+  while (list.length < 12000) {
+    const t = templates[(id - 1) % templates.length];
+    const v = t.vars[(Math.floor((id - 1) / templates.length)) % t.vars.length];
+    const seriesNum = Math.floor((id - 1) / (templates.length * 4)) + 1;
+    const priceOffset = ((id * 17) % 15) * 100;
+    const modelCode = `JS-${String(id).padStart(5, '0')}`;
+    const suffix = seriesNum > 1 ? ` [2026モデル Vol.${seriesNum}]` : '';
+    list.push({
+      id: id,
+      cat: t.cat,
+      maker: t.maker,
+      name: `${t.base} (${v})${suffix}`,
+      code: modelCode,
+      price: t.price + priceOffset
+    });
+    id++;
+  }
+  return list;
+}
+
+const ALL_PRODUCTS = generate12000Products();
+
+// --- State ---
+let currentCat = 'すべて';
+let currentMaker = 'すべて';
+let currentPage = 1;
+const PAGE_SIZE = 100;
+let cart = [];
+let discountRate = 0;
+let payMode = 'cash';
+
+// Persistent storage for cards, sales, and points
+const DEFAULT_CARDS = [
+  { number: '3867 5889 7657 1243', holder: 'HINA SHIMIZU', cvv: '123', isDefault: true }
+];
+
+let registeredCards = JSON.parse(localStorage.getItem('joshin_cards_v1')) || DEFAULT_CARDS;
+let storeStats = JSON.parse(localStorage.getItem('joshin_stats_v1')) || { sales: 0, count: 0, points: 0 };
+
+function saveStoreData() {
+  localStorage.setItem('joshin_cards_v1', JSON.stringify(registeredCards));
+  localStorage.setItem('joshin_stats_v1', JSON.stringify(storeStats));
+  updatePointDisplay();
+}
+
+// --- Render Catalog ---
+function initTabs() {
+  const catDiv = document.getElementById('catTabs');
+  CATEGORIES.forEach(c => {
     const btn = document.createElement('button');
-    btn.className = 'cat-tab' + (currentCat === c ? ' active' : '');
+    btn.className = 'tab-btn' + (c === currentCat ? ' active' : '');
     btn.textContent = c;
     btn.onclick = () => {
       currentCat = c;
-      playTone('tap');
-      renderTabs();
-      renderProducts();
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      resetAndRender();
     };
-    wrap.appendChild(btn);
+    catDiv.appendChild(btn);
+  });
+
+  const makerDiv = document.getElementById('makerTabs');
+  MAKERS.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'maker-btn' + (m === currentMaker ? ' active' : '');
+    btn.textContent = m;
+    btn.onclick = () => {
+      currentMaker = m;
+      document.querySelectorAll('.maker-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      resetAndRender();
+    };
+    makerDiv.appendChild(btn);
   });
 }
 
-function renderProducts() {
+function getFilteredProducts() {
   const kw = document.getElementById('searchInput').value.trim().toLowerCase();
+  return ALL_PRODUCTS.filter(p => {
+    if (currentCat !== 'すべて' && p.cat !== currentCat) return false;
+    if (currentMaker !== 'すべて' && p.maker !== currentMaker) return false;
+    if (kw && !p.name.toLowerCase().includes(kw) && !p.maker.toLowerCase().includes(kw) && !p.code.toLowerCase().includes(kw)) return false;
+    return true;
+  });
+}
+
+function resetAndRender() {
+  currentPage = 1;
+  renderProducts();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  resetAndRender();
+}
+
+function changePage(delta) {
+  const filtered = getFilteredProducts();
+  const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  currentPage = Math.min(maxPage, Math.max(1, currentPage + delta));
+  renderProducts();
+}
+
+function renderProducts() {
+  const filtered = getFilteredProducts();
+  const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (currentPage > maxPage) currentPage = maxPage;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('countInfo').textContent = `該当: ${filtered.length.toLocaleString()}商品 (${currentPage} / ${maxPage}ページ)`;
+
   const grid = document.getElementById('productGrid');
   grid.innerHTML = '';
-
-  const filtered = products.filter(p => {
-    const matchCat = (currentCat === "すべて") || (p.cat === currentCat);
-    const text = (p.maker + " " + p.name).toLowerCase();
-    const matchKw = !kw || text.includes(kw);
-    return matchCat && matchKw;
-  });
-
-  if (filtered.length === 0) {
-    const emptyDiv = document.createElement('div');
-    emptyDiv.style.gridColumn = '1 / -1';
-    emptyDiv.style.textAlign = 'center';
-    emptyDiv.style.color = '#94a3b8';
-    emptyDiv.style.padding = '24px';
-    emptyDiv.textContent = '該当する商品が見つかりません';
-    grid.appendChild(emptyDiv);
-    return;
-  }
-
-  filtered.forEach(p => {
+  slice.forEach(p => {
     const card = document.createElement('div');
     card.className = 'p-card';
+    card.innerHTML = `
+      <div>
+        <div class="p-maker">${p.maker} <span style="color:#9ca3af; font-weight:normal;">${p.code}</span></div>
+        <div class="p-name">${p.name}</div>
+      </div>
+      <div class="p-price">¥${p.price.toLocaleString()}</div>
+    `;
     card.onclick = () => addToCart(p);
-
-    const mDiv = document.createElement('div');
-    mDiv.className = 'p-maker';
-    mDiv.textContent = p.maker;
-
-    const nDiv = document.createElement('div');
-    nDiv.className = 'p-name';
-    nDiv.textContent = p.name;
-
-    const prDiv = document.createElement('div');
-    prDiv.className = 'p-price';
-    prDiv.textContent = p.price.toLocaleString() + '円';
-
-    card.appendChild(mDiv);
-    card.appendChild(nDiv);
-    card.appendChild(prDiv);
     grid.appendChild(card);
   });
 }
 
-function addCustomProduct() {
-  const maker = document.getElementById('addMaker').value.trim() || 'その他';
-  const name = document.getElementById('addName').value.trim();
-  const price = parseInt(document.getElementById('addPrice').value, 10);
-  if (!name || isNaN(price) || price < 0) {
-    alert('商品名と正しい価格を入力してください');
-    return;
-  }
-  const newItem = {
-    id: Date.now(),
-    cat: currentCat === "すべて" ? "パソコン・タブレット" : currentCat,
-    maker: maker,
-    name: name,
-    price: price
-  };
-  products.unshift(newItem);
-  try { localStorage.setItem('joshin_pos_v9', JSON.stringify(products)); } catch (e) {}
-  document.getElementById('addMaker').value = '';
-  document.getElementById('addName').value = '';
-  document.getElementById('addPrice').value = '';
-  playTone('scan');
-  renderProducts();
-}
-
-function resetCatalog() {
-  if (!confirm('商品リストを初期状態（パソコン・全家電リスト）に戻しますか？')) return;
-  products = DEFAULT_ITEMS.slice();
-  try { localStorage.setItem('joshin_pos_v9', JSON.stringify(products)); } catch (e) {}
-  currentCat = "すべて";
-  document.getElementById('searchInput').value = '';
-  playTone('tap');
-  renderTabs();
-  renderProducts();
-}
-
-function addToCart(p) {
-  playTone('scan');
-  const found = cart.find(item => item.id === p.id);
+// --- Cart & Checkout ---
+function addToCart(product) {
+  playScanSound();
+  const found = cart.find(item => item.id === product.id);
   if (found) {
-    found.qty += 1;
+    found.qty++;
   } else {
-    cart.push({ id: p.id, maker: p.maker, name: p.name, price: p.price, qty: 1 });
+    cart.push({ ...product, qty: 1 });
   }
   renderCart();
 }
 
-function changeQty(id, delta) {
-  playTone('tap');
-  const found = cart.find(item => item.id === id);
-  if (!found) return;
-  found.qty += delta;
-  if (found.qty <= 0) {
-    cart = cart.filter(item => item.id !== id);
-  }
+function updateQty(id, delta) {
+  playBeep(900, 0.05);
+  const idx = cart.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
   renderCart();
-}
-
-function removeItem(id) {
-  playTone('tap');
-  cart = cart.filter(item => item.id !== id);
-  renderCart();
-}
-
-function setDiscount(rate) {
-  playTone('tap');
-  discountRate = rate;
-  [0, 5, 10, 20].forEach(r => {
-    document.getElementById('d' + r).className = 'disc-btn' + (r === rate ? ' active' : '');
-  });
-  updateSummary();
-}
-
-function getFinalTotal() {
-  const sub = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  return Math.floor(sub * (100 - discountRate) / 100);
-}
-
-function renderCart() {
-  const list = document.getElementById('cartList');
-  list.innerHTML = '';
-  const count = cart.reduce((acc, item) => acc + item.qty, 0);
-  document.getElementById('itemCount').textContent = count + '点';
-
-  if (cart.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'cart-empty';
-    li.textContent = '左の商品をタップして追加してください';
-    list.appendChild(li);
-    updateSummary();
-    return;
-  }
-
-  cart.forEach(item => {
-    const li = document.createElement('li');
-    li.className = 'cart-item';
-
-    const info = document.createElement('div');
-    info.className = 'ci-info';
-    const nDiv = document.createElement('div');
-    nDiv.className = 'ci-name';
-    nDiv.textContent = '[' + item.maker + '] ' + item.name;
-    const sDiv = document.createElement('div');
-    sDiv.className = 'ci-sub';
-    sDiv.textContent = item.price.toLocaleString() + '円 × ' + item.qty + ' ＝ ' + (item.price * item.qty).toLocaleString() + '円';
-    info.appendChild(nDiv);
-    info.appendChild(sDiv);
-
-    const ctrl = document.createElement('div');
-    ctrl.className = 'ci-ctrl';
-    const bMinus = document.createElement('button');
-    bMinus.className = 'qty-btn';
-    bMinus.textContent = '−';
-    bMinus.onclick = () => changeQty(item.id, -1);
-
-    const qSpan = document.createElement('span');
-    qSpan.style.fontWeight = 'bold';
-    qSpan.style.minWidth = '18px';
-    qSpan.style.textAlign = 'center';
-    qSpan.textContent = item.qty;
-
-    const bPlus = document.createElement('button');
-    bPlus.className = 'qty-btn';
-    bPlus.textContent = '＋';
-    bPlus.onclick = () => changeQty(item.id, 1);
-
-    const bDel = document.createElement('button');
-    bDel.className = 'del-btn';
-    bDel.textContent = '削除';
-    bDel.onclick = () => removeItem(item.id);
-
-    ctrl.appendChild(bMinus);
-    ctrl.appendChild(qSpan);
-    ctrl.appendChild(bPlus);
-    ctrl.appendChild(bDel);
-
-    li.appendChild(info);
-    li.appendChild(ctrl);
-    list.appendChild(li);
-  });
-
-  updateSummary();
-}
-
-function updateSummary() {
-  const total = getFinalTotal();
-  const pts = Math.floor(total * 0.01);
-  document.getElementById('totalDisplay').textContent = total.toLocaleString() + ' 円';
-  document.getElementById('pointBadge').textContent = '+' + pts.toLocaleString() + ' pt 還元';
-
-  const dep = parseInt(document.getElementById('depositInput').value, 10);
-  const chEl = document.getElementById('changeDisplay');
-  if (isNaN(dep)) {
-    chEl.textContent = '0 円';
-    chEl.style.color = '#059669';
-    return;
-  }
-  const diff = dep - total;
-  if (diff >= 0) {
-    chEl.textContent = diff.toLocaleString() + ' 円';
-    chEl.style.color = '#059669';
-  } else {
-    chEl.textContent = '不足 ' + Math.abs(diff).toLocaleString() + ' 円';
-    chEl.style.color = '#dc2626';
-  }
-}
-
-function setExactCash() {
-  playTone('tap');
-  document.getElementById('depositInput').value = getFinalTotal();
-  updateSummary();
-}
-
-function addCash(amount) {
-  playTone('tap');
-  const cur = parseInt(document.getElementById('depositInput').value, 10) || 0;
-  document.getElementById('depositInput').value = cur + amount;
-  updateSummary();
-}
-
-function clearCash() {
-  playTone('tap');
-  document.getElementById('depositInput').value = '';
-  updateSummary();
 }
 
 function clearCart() {
-  playTone('tap');
+  playBeep(600, 0.08);
   cart = [];
-  discountRate = 0;
-  [0, 5, 10, 20].forEach(r => {
-    document.getElementById('d' + r).className = 'disc-btn' + (r === 0 ? ' active' : '');
-  });
-  document.getElementById('depositInput').value = '';
+  document.getElementById('cashInput').value = '';
   renderCart();
 }
 
-function completeCheckout() {
-  const total = getFinalTotal();
-  if (total === 0 && cart.length === 0) {
-    alert('商品が選択されていません');
+function setDiscount(rate, btn) {
+  playBeep(1000, 0.05);
+  discountRate = rate;
+  document.querySelectorAll('.disc-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCart();
+}
+
+function getTotals() {
+  const sub = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const disc = Math.floor(sub * (discountRate / 100));
+  const total = sub - disc;
+  // Every checkout grants 10 points when cart is not empty
+  const earnedPoints = cart.length > 0 ? 10 : 0;
+  return { sub, disc, total, earnedPoints };
+}
+
+function updatePointDisplay() {
+  const { earnedPoints } = getTotals();
+  document.getElementById('earnedPointsText').textContent = `+${earnedPoints} P（累計: ${storeStats.points.toLocaleString()} P）`;
+}
+
+function renderCart() {
+  const box = document.getElementById('cartBox');
+  if (cart.length === 0) {
+    box.innerHTML = '<div style="text-align:center; color:#9ca3af; padding-top:70px;">左の商品をタップしてスキャンしてください</div>';
+  } else {
+    box.innerHTML = '';
+    cart.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-info">
+          <div style="font-weight:bold;">${item.name}</div>
+          <div style="color:#6b7280; font-size:0.78rem;">単価 ¥${item.price.toLocaleString()} × ${item.qty}</div>
+        </div>
+        <div class="cart-qty-btns">
+          <button class="q-btn" onclick="updateQty(${item.id}, -1)">-</button>
+          <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+          <button class="q-btn" onclick="updateQty(${item.id}, 1)">+</button>
+        </div>
+      `;
+      box.appendChild(row);
+    });
+  }
+
+  const { sub, disc, total } = getTotals();
+  document.getElementById('subTotalText').textContent = `¥${sub.toLocaleString()}`;
+  document.getElementById('discText').textContent = `-¥${disc.toLocaleString()}`;
+  document.getElementById('totalText').textContent = `¥${total.toLocaleString()}`;
+  updatePointDisplay();
+  updateChange();
+}
+
+function switchPayMode(mode) {
+  playBeep(1100, 0.05);
+  payMode = mode;
+  document.getElementById('tabCash').classList.toggle('active', mode === 'cash');
+  document.getElementById('tabCredit').classList.toggle('active', mode === 'credit');
+  document.getElementById('cashArea').style.display = mode === 'cash' ? 'block' : 'none';
+  document.getElementById('creditArea').style.display = mode === 'credit' ? 'block' : 'none';
+  document.getElementById('ccErrorMsg').style.display = 'none';
+}
+
+// Cash helpers
+function setExactCash() {
+  const { total } = getTotals();
+  document.getElementById('cashInput').value = total;
+  updateChange();
+}
+
+function addCash(amount) {
+  const cur = parseInt(document.getElementById('cashInput').value || '0', 10);
+  document.getElementById('cashInput').value = cur + amount;
+  updateChange();
+}
+
+function updateChange() {
+  const { total } = getTotals();
+  const cash = parseInt(document.getElementById('cashInput').value || '0', 10);
+  const diff = cash - total;
+  const el = document.getElementById('changeText');
+  if (cash === 0 && total > 0) {
+    el.textContent = '¥0';
+    el.style.color = '#065f46';
+  } else if (diff >= 0) {
+    el.textContent = `¥${diff.toLocaleString()}`;
+    el.style.color = '#065f46';
+  } else {
+    el.textContent = `不足 ¥${Math.abs(diff).toLocaleString()}`;
+    el.style.color = '#dc2626';
+  }
+}
+
+function processCashCheckout() {
+  if (cart.length === 0) { playErrorSound(); alert('商品がカートに入っていません'); return; }
+  const { total, earnedPoints } = getTotals();
+  const cash = parseInt(document.getElementById('cashInput').value || '0', 10);
+  if (cash < total) { playErrorSound(); alert('お預かり金額が不足しています'); return; }
+
+  const change = cash - total;
+  storeStats.sales += total;
+  storeStats.count += 1;
+  storeStats.points += earnedPoints;
+  saveStoreData();
+
+  playRegisterSound();
+  showReceipt({
+    method: '現金払い',
+    paid: cash,
+    change: change,
+    earnedPoints: earnedPoints
+  });
+}
+
+// Credit Card helpers
+function formatCardInput(input) {
+  let digits = input.value.replace(/\D/g, '').slice(0, 16);
+  input.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+
+function autoFillDefaultCard() {
+  playBeep(1100, 0.05);
+  if (registeredCards.length > 0) {
+    document.getElementById('ccNumberInput').value = registeredCards[0].number;
+    document.getElementById('ccCvvInput').value = registeredCards[0].cvv;
+    document.getElementById('ccErrorMsg').style.display = 'none';
+  }
+}
+
+function clearCreditInputs() {
+  playBeep(800, 0.05);
+  document.getElementById('ccNumberInput').value = '';
+  document.getElementById('ccCvvInput').value = '';
+  document.getElementById('ccErrorMsg').style.display = 'none';
+}
+
+function processCreditCheckout() {
+  const errEl = document.getElementById('ccErrorMsg');
+  errEl.style.display = 'none';
+
+  if (cart.length === 0) {
+    playErrorSound();
+    errEl.textContent = '⚠️ 商品をカートに追加してください';
+    errEl.style.display = 'block';
     return;
   }
-  const dep = parseInt(document.getElementById('depositInput').value, 10);
-  if (!isNaN(dep) && dep < total) {
-    alert('お預かり金額が不足しています');
+
+  const rawNum = document.getElementById('ccNumberInput').value.replace(/\s+/g, '');
+  const cvv = document.getElementById('ccCvvInput').value.trim();
+  const installment = document.getElementById('ccInstallment').value;
+
+  const matchedCard = registeredCards.find(c => c.number.replace(/\s+/g, '') === rawNum && c.cvv === cvv);
+
+  if (!matchedCard) {
+    playErrorSound();
+    errEl.textContent = '❌ カード番号またはセキュリティコードが一致しません（店員設定の登録カードを確認してください）';
+    errEl.style.display = 'block';
     return;
   }
-  playTone('cash');
-  sales.total += total;
-  sales.count += 1;
-  try { localStorage.setItem('joshin_sales_v9', JSON.stringify(sales)); } catch (e) {}
-  updateSalesView();
-  const change = isNaN(dep) ? 0 : (dep - total);
-  const pts = Math.floor(total * 0.01);
-  alert('ありがとうございました！\n\nお買上合計: ' + total.toLocaleString() + '円\nお釣り: ' + change.toLocaleString() + '円\n獲得ポイント: +' + pts.toLocaleString() + 'pt');
-  clearCart();
+
+  const { total, earnedPoints } = getTotals();
+  storeStats.sales += total;
+  storeStats.count += 1;
+  storeStats.points += earnedPoints;
+  saveStoreData();
+
+  const authCode = String(Math.floor(100000 + Math.random() * 900000));
+  const maskedNum = '**** **** **** ' + rawNum.slice(-4);
+
+  playRegisterSound();
+  showReceipt({
+    method: `クレジットカード (${installment})`,
+    cardNum: maskedNum,
+    holder: matchedCard.holder,
+    authCode: authCode,
+    earnedPoints: earnedPoints
+  });
 }
 
-function updateSalesView() {
-  document.getElementById('salesTotal').textContent = sales.total.toLocaleString();
-  document.getElementById('salesCount').textContent = sales.count;
+// Receipt Modal
+function showReceipt(info) {
+  const { sub, disc, total } = getTotals();
+  const now = new Date().toLocaleString('ja-JP');
+  let lines = `================================
+`;
+  lines += `   Joshin 上新電機 POSレシート
+`;
+  lines += `================================
+`;
+  lines += `日時: ${now}
+`;
+  lines += `--------------------------------
+`;
+  cart.forEach(item => {
+    lines += `${item.name}
+`;
+    lines += `  ¥${item.price.toLocaleString()} × ${item.qty}点 = ¥${(item.price * item.qty).toLocaleString()}
+`;
+  });
+  lines += `--------------------------------
+`;
+  lines += `小計（税込）: ¥${sub.toLocaleString()}
+`;
+  if (disc > 0) lines += `割引(${discountRate}%OFF): -¥${disc.toLocaleString()}
+`;
+  lines += `合計金額    : ¥${total.toLocaleString()}
+`;
+  lines += `--------------------------------
+`;
+  lines += `お支払方法  : ${info.method}
+`;
+  if (info.paid !== undefined) {
+    lines += `お預かり    : ¥${info.paid.toLocaleString()}
+`;
+    lines += `お釣り      : ¥${info.change.toLocaleString()}
+`;
+  }
+  if (info.cardNum) {
+    lines += `カード番号  : ${info.cardNum}
+`;
+    lines += `カード名義  : ${info.holder}
+`;
+    lines += `承認番号    : ${info.authCode}
+`;
+  }
+  lines += `--------------------------------
+`;
+  lines += `🎁 今回付与ポイント: +${info.earnedPoints} P
+`;
+  lines += `💎 累計保有ポイント: ${storeStats.points.toLocaleString()} P
+`;
+  lines += `================================
+`;
+  lines += `  毎度ありがとうございます！`;
+
+  document.getElementById('receiptContent').textContent = lines;
+  document.getElementById('receiptModal').style.display = 'flex';
 }
 
-function resetSales() {
-  if (!confirm('本日の売上集計を0円にリセットしますか？')) return;
-  sales = { total: 0, count: 0 };
-  try { localStorage.setItem('joshin_sales_v9', JSON.stringify(sales)); } catch (e) {}
-  updateSalesView();
+function closeReceipt() {
+  document.getElementById('receiptModal').style.display = 'none';
+  cart = [];
+  document.getElementById('cashInput').value = '';
+  document.getElementById('ccNumberInput').value = '';
+  document.getElementById('ccCvvInput').value = '';
+  renderCart();
 }
 
-renderTabs();
+// --- Staff Settings Modal ---
+function openStaffModal() {
+  playBeep(1200, 0.06);
+  document.getElementById('staffPinInput').value = '';
+  document.getElementById('staffLoginView').style.display = 'block';
+  document.getElementById('staffContentView').style.display = 'none';
+  document.getElementById('staffModal').style.display = 'flex';
+}
+
+function closeStaffModal() {
+  document.getElementById('staffModal').style.display = 'none';
+}
+
+function verifyStaffPin() {
+  const pin = document.getElementById('staffPinInput').value;
+  if (pin === '0000') {
+    playScanSound();
+    document.getElementById('staffLoginView').style.display = 'none';
+    document.getElementById('staffContentView').style.display = 'block';
+    renderStaffPanel();
+  } else {
+    playErrorSound();
+    alert('暗証番号が違います（初期番号: 0000）');
+  }
+}
+
+function renderStaffPanel() {
+  document.getElementById('staffTotalSales').textContent = `¥${storeStats.sales.toLocaleString()}`;
+  document.getElementById('staffSalesCount').textContent = storeStats.count;
+  document.getElementById('staffTotalPoints').textContent = storeStats.points.toLocaleString();
+
+  const listEl = document.getElementById('registeredCardsList');
+  listEl.innerHTML = '';
+  registeredCards.forEach((c, idx) => {
+    const div = document.createElement('div');
+    div.className = 'staff-card-item';
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:bold; font-family:monospace;">${c.number}</div>
+        <div style="font-size:0.78rem; color:#4b5563;">名義: ${c.holder} / コード: ${c.cvv}</div>
+      </div>
+      ${c.isDefault ? '<span style="font-size:0.75rem; color:#059669; font-weight:bold;">初期登録</span>' : `<button onclick="deleteCard(${idx})" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.75rem;">削除</button>`}
+    `;
+    listEl.appendChild(div);
+  });
+}
+
+function registerNewCard() {
+  const num = document.getElementById('newCardNum').value.trim();
+  const holder = document.getElementById('newCardHolder').value.trim().toUpperCase();
+  const cvv = document.getElementById('newCardCvv').value.trim();
+
+  if (num.replace(/\s+/g, '').length !== 16 || !holder || cvv.length !== 3) {
+    playErrorSound();
+    alert('カード番号（16桁）、名義人（ローマ字）、セキュリティコード（3桁）を正しく入力してください');
+    return;
+  }
+
+  registeredCards.push({ number: num, holder: holder, cvv: cvv, isDefault: false });
+  saveStoreData();
+  playRegisterSound();
+
+  document.getElementById('newCardNum').value = '';
+  document.getElementById('newCardHolder').value = '';
+  document.getElementById('newCardCvv').value = '';
+  renderStaffPanel();
+  alert('新しいクレジットカードを登録しました！');
+}
+
+function deleteCard(idx) {
+  if (confirm('このカード登録を削除しますか？')) {
+    registeredCards.splice(idx, 1);
+    saveStoreData();
+    renderStaffPanel();
+  }
+}
+
+// Init
+initTabs();
 renderProducts();
-renderCart();
-updateSalesView();
+updatePointDisplay();
 </script>
 </body>
 </html>
