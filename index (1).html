@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>家電・パソコン POSレジシステム</title>
+<style>
+  :root {
+    --primary: #d90429;
+    --primary-dark: #9b001c;
+    --accent: #00509d;
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --border: #dcdfe6;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 1.1rem; margin: 0; letter-spacing: 0.5px; }
+  .header-btns { display: flex; gap: 8px; align-items: center; }
+  .h-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .main {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 12px;
+    padding: 12px;
+    flex: 1;
+    overflow: hidden;
+  }
+  @media (max-width: 820px) {
+    body { height: auto; overflow: auto; }
+    .main { grid-template-columns: 1fr; overflow: visible; }
+  }
+  .left-panel, .right-panel {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .search-bar {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    background: #fafafa;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .cat-tabs {
+    display: flex;
+    overflow-x: auto;
+    padding: 8px 10px;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    flex-shrink: 0;
+  }
+  .cat-tab {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #d0d7de;
+    background: #f6f8fa;
+    font-size: 0.82rem;
+    font-weight: bold;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .cat-tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .product-grid {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    align-content: start;
+  }
+  .prod-btn {
+    background: #fff;
+    border: 1px solid #d8dee4;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 76px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .prod-btn:active { transform: scale(0.97); background: #eef6ff; }
+  .prod-maker { font-size: 0.7rem; color: #57606a; font-weight: bold; }
+  .prod-name { font-size: 0.84rem; font-weight: bold; margin: 3px 0; line-height: 1.25; }
+  .prod-price { font-size: 0.92rem; color: var(--primary); font-weight: bold; }
+  .add-box {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    background: #f8f9fa;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .add-box input, .add-box select {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.82rem;
+  }
+  .cart-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    background: #fafafa;
+  }
+  .cart-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    margin: 0;
+    list-style: none;
+  }
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    gap: 6px;
+  }
+  .cart-info { flex: 1; }
+  .cart-title { font-size: 0.86rem; font-weight: bold; }
+  .cart-sub { font-size: 0.78rem; color: #666; }
+  .qty-ctrl { display: flex; align-items: center; gap: 4px; }
+  .q-btn {
+    width: 28px; height: 28px;
+    border: 1px solid #ccc; background: #f8f9fa;
+    border-radius: 6px; font-weight: bold; cursor: pointer;
+  }
+  .del-btn {
+    background: #fee2e2; color: #dc2626; border: none;
+    border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; cursor: pointer;
+  }
+  .calc-area {
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+  }
+  .disc-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .d-btn {
+    flex: 1; padding: 6px; font-size: 0.78rem; font-weight: bold;
+    border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;
+  }
+  .d-btn.active { background: #f59e0b; color: white; border-color: #d97706; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.9rem; }
+  .total-val { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+  .point-val { font-size: 0.85rem; font-weight: bold; color: #d97706; }
+  .deposit-row { display: flex; gap: 6px; align-items: center; margin: 8px 0; }
+  .deposit-row input {
+    flex: 1; padding: 8px; font-size: 1.1rem; font-weight: bold;
+    text-align: right; border: 2px solid var(--accent); border-radius: 8px; width: 100px;
+  }
+  .quick-cash { display: flex; gap: 4px; margin-bottom: 8px; }
+  .qc-btn {
+    flex: 1; padding: 6px 2px; font-size: 0.76rem; font-weight: bold;
+    background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; cursor: pointer;
+  }
+  .action-btns { display: flex; gap: 8px; }
+  .btn-clear {
+    flex: 1; padding: 12px; border: 1px solid #ccc; background: white;
+    border-radius: 8px; font-weight: bold; cursor: pointer;
+  }
+  .btn-pay {
+    flex: 2; padding: 12px; border: none; background: var(--primary);
+    color: white; border-radius: 8px; font-size: 1.05rem; font-weight: bold; cursor: pointer;
+  }
+  .modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    justify-content: center; align-items: center; z-index: 100; padding: 16px;
+  }
+  .modal-box {
+    background: white; border-radius: 12px; max-width: 380px; width: 100%;
+    padding: 20px; font-family: monospace; max-height: 85vh; overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛒 家電・PC 総合POSレジ</h1>
+  <div class="header-btns">
+    <span style="font-size:0.82rem;">売上: <strong id="salesTotal">0</strong>円</span>
+    <button class="h-btn" id="soundBtn" onclick="toggleSound()">🔊 音:ON</button>
+    <button class="h-btn" onclick="forceResetProducts()">🔄 商品初期化</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- 左：商品一覧 -->
+  <div class="left-panel">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 メーカー・商品名で検索（例: Apple, 富士通, ダイソン, Switch）" oninput="renderProducts()">
+      <button onclick="document.getElementById('searchInput').value='';renderProducts();" style="padding:0 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">クリア</button>
+    </div>
+    <div class="cat-tabs" id="catTabs"></div>
+    <div class="product-grid" id="productGrid"></div>
+    <div class="add-box">
+      <select id="newCat">
+        <option value="パソコン・タブレット">パソコン・タブレット</option>
+        <option value="テレビ・映像">テレビ・映像</option>
+        <option value="冷蔵庫・洗濯機">冷蔵庫・洗濯機</option>
+        <option value="エアコン・空調">エアコン・空調</option>
+        <option value="調理・キッチン">調理・キッチン</option>
+        <option value="掃除機・美容家電">掃除機・美容家電</option>
+        <option value="スマホ・カメラ・時計">スマホ・カメラ・時計</option>
+        <option value="ゲーム・ホビー">ゲーム・ホビー</option>
+        <option value="電池・消耗品・日用品">電池・消耗品・日用品</option>
+      </select>
+      <input type="text" id="newMaker" placeholder="メーカー" style="width:85px;">
+      <input type="text" id="newName" placeholder="商品名" style="flex:1;min-width:110px;">
+      <input type="number" id="newPrice" placeholder="価格" style="width:85px;">
+      <button onclick="addNewProduct()" style="background:var(--accent);color:white;border:none;padding:6px 12px;border-radius:6px;font-weight:bold;cursor:pointer;">＋追加</button>
+    </div>
+  </div>
+
+  <!-- 右：お会計 -->
+  <div class="right-panel">
+    <div class="cart-header">
+      <span>🧾 お買上明細（<span id="itemCount">0</span>点）</span>
+      <button onclick="resetSales()" style="font-size:0.75rem;color:#666;border:1px solid #ccc;background:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;">売上リセット</button>
+    </div>
+    <ul class="cart-list" id="cartList"></ul>
+
+    <div class="calc-area">
+      <div class="disc-row">
+        <button class="d-btn active" onclick="setDiscount(0, this)">割引なし</button>
+        <button class="d-btn" onclick="setDiscount(5, this)">5%OFF</button>
+        <button class="d-btn" onclick="setDiscount(10, this)">10%OFF</button>
+        <button class="d-btn" onclick="setDiscount(20, this)">20%OFF</button>
+      </div>
+      <div class="summary-row">
+        <span>小計 / 割引額</span>
+        <span><span id="subTotal">0</span>円 / -<span id="discAmount">0</span>円</span>
+      </div>
+      <div class="summary-row">
+        <span>合計金額（税込）</span>
+        <span class="total-val"><span id="finalTotal">0</span>円</span>
+      </div>
+      <div class="summary-row">
+        <span>進呈ポイント（1%）</span>
+        <span class="point-val"><span id="pointEarned">0</span> pt</span>
+      </div>
+
+      <div class="deposit-row">
+        <span style="font-weight:bold;">お預かり</span>
+        <input type="number" id="depositInput" placeholder="0" oninput="updateTotals()">
+        <span style="font-weight:bold;">円</span>
+      </div>
+      <div class="quick-cash">
+        <button class="qc-btn" onclick="setExact()">ちょうど</button>
+        <button class="qc-btn" onclick="addCash(1000)">+1,000</button>
+        <button class="qc-btn" onclick="addCash(5000)">+5,000</button>
+        <button class="qc-btn" onclick="addCash(10000)">+10,000</button>
+        <button class="qc-btn" onclick="clearCash()">消去</button>
+      </div>
+      <div class="summary-row" style="margin-bottom:8px;">
+        <span style="font-weight:bold;">お釣り</span>
+        <span id="changeDisplay" style="font-size:1.25rem;font-weight:bold;color:#059669;">0円</span>
+      </div>
+      <div class="action-btns">
+        <button class="btn-clear" onclick="clearCart()">取消</button>
+        <button class="btn-pay" onclick="checkout()">会計完了（レシート）</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- レシートモーダル -->
+<div class="modal" id="receiptModal">
+  <div class="modal-box">
+    <div style="text-align:center;border-bottom:1px dashed #333;padding-bottom:8px;margin-bottom:10px;">
+      <strong style="font-size:1.1rem;">お買い上げレシート</strong><br>
+      <span id="recDate" style="font-size:0.78rem;"></span>
+    </div>
+    <div id="recBody" style="font-size:0.85rem;line-height:1.5;"></div>
+    <button onclick="closeReceipt()" style="width:100%;margin-top:14px;padding:10px;background:var(--accent);color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">閉じる（次の会計へ）</button>
+  </div>
+</div>
+
+<script>
+const CATALOG_VERSION = "v9_full_catalog";
+
+const DEFAULT_PRODUCTS = [
+  // パソコン・タブレット
+  { id: 101, cat: "パソコン・タブレット", maker: "Apple", name: "MacBook Air 13インチ M3", price: 164800 },
+  { id: 102, cat: "パソコン・タブレット", maker: "Apple", name: "MacBook Pro 14インチ M4", price: 248800 },
+  { id: 103, cat: "パソコン・タブレット", maker: "Apple", name: "iPad Pro 11インチ (M4)", price: 168800 },
+  { id: 104, cat: "パソコン・タブレット", maker: "Apple", name: "iPad Air 11インチ (M2)", price: 98800 },
+  { id: 105, cat: "パソコン・タブレット", maker: "Apple", name: "iPad (第10世代) 64GB", price: 58800 },
+  { id: 106, cat: "パソコン・タブレット", maker: "NEC", name: "LAVIE N15 ノートPC Core i7", price: 159800 },
+  { id: 107, cat: "パソコン・タブレット", maker: "富士通", name: "FMV LIFEBOOK AHシリーズ", price: 149800 },
+  { id: 108, cat: "パソコン・タブレット", maker: "Microsoft", name: "Surface Laptop 第7世代", price: 184800 },
+  { id: 109, cat: "パソコン・タブレット", maker: "ASUS", name: "ROG Strix ゲーミングノート", price: 229800 },
+  { id: 110, cat: "パソコン・タブレット", maker: "サードウェーブ", name: "GALLERIA ゲーミングPC RTX4070", price: 249800 },
+  { id: 111, cat: "パソコン・タブレット", maker: "Lenovo", name: "IdeaPad Slim 5i 14型", price: 94800 },
+  { id: 112, cat: "パソコン・タブレット", maker: "EPSON", name: "カラリオ A4複合機プリンター", price: 24800 },
+  { id: 113, cat: "パソコン・タブレット", maker: "Logicool", name: "MX Master 3S ワイヤレスマウス", price: 16900 },
+  { id: 114, cat: "パソコン・タブレット", maker: "Microsoft", name: "Office Home & Business 2024", price: 39800 },
+
+  // テレビ・映像
+  { id: 201, cat: "テレビ・映像", maker: "SONY", name: "BRAVIA 55V型 4K有機ELテレビ", price: 275000 },
+  { id: 202, cat: "テレビ・映像", maker: "TVS REGZA", name: "REGZA 50V型 4K液晶テレビ", price: 132000 },
+  { id: 203, cat: "テレビ・映像", maker: "SHARP", name: "AQUOS 43V型 4K液晶テレビ", price: 98000 },
+  { id: 204, cat: "テレビ・映像", maker: "Panasonic", name: "VIERA 48V型 4K有機EL", price: 198000 },
+  { id: 205, cat: "テレビ・映像", maker: "Panasonic", name: "ディーガ 2TB ブルーレイレコーダー", price: 69800 },
+  { id: 206, cat: "テレビ・映像", maker: "SONY", name: "HT-A5000 サウンドバー", price: 99000 },
+
+  // 冷蔵庫・洗濯機
+  { id: 301, cat: "冷蔵庫・洗濯機", maker: "Panasonic", name: "ななめドラム洗濯乾燥機 LX129", price: 328000 },
+  { id: 302, cat: "冷蔵庫・洗濯機", maker: "HITACHI", name: "ビートウォッシュ 全自動洗濯機 10kg", price: 128000 },
+  { id: 303, cat: "冷蔵庫・洗濯機", maker: "HITACHI", name: "冷蔵庫 540L 観音開き 真空チルド", price: 238000 },
+  { id: 304, cat: "冷蔵庫・洗濯機", maker: "三菱電機", name: "冷蔵庫 470L 切れちゃう瞬冷凍", price: 198000 },
+  { id: 305, cat: "冷蔵庫・洗濯機", maker: "SHARP", name: "冷蔵庫 350L どっちもドア", price: 118000 },
+  { id: 306, cat: "冷蔵庫・洗濯機", maker: "AQUA", name: "単身用 2ドア冷蔵庫 135L", price: 42800 },
+
+  // エアコン・空調
+  { id: 401, cat: "エアコン・空調", maker: "DAIKIN", name: "うるさらX 14畳用 エアコン", price: 258000 },
+  { id: 402, cat: "エアコン・空調", maker: "三菱電機", name: "霧ヶ峰 6畳用 スタンダードエアコン", price: 79800 },
+  { id: 403, cat: "エアコン・空調", maker: "SHARP", name: "プラズマクラスター 加湿空気清浄機", price: 49800 },
+  { id: 404, cat: "エアコン・空調", maker: "DAIKIN", name: "ストリーマ 空気清浄機", price: 54800 },
+  { id: 405, cat: "エアコン・空調", maker: "Dyson", name: "Purifier Hot+Cool 空気清浄ファン", price: 84800 },
+
+  // 調理・キッチン
+  { id: 501, cat: "調理・キッチン", maker: "象印", name: "炎舞炊き 圧力IH炊飯ジャー 5.5合", price: 89800 },
+  { id: 502, cat: "調理・キッチン", maker: "タイガー", name: "土鍋ご泡火炊き 炊飯器 5.5合", price: 79800 },
+  { id: 503, cat: "調理・キッチン", maker: "SHARP", name: "ヘルシオ ウォーターオーブン 30L", price: 118000 },
+  { id: 504, cat: "調理・キッチン", maker: "BALMUDA", name: "The Toaster スチームトースター", price: 29700 },
+  { id: 505, cat: "調理・キッチン", maker: "DeLonghi", name: "マグニフィカS 全自動コーヒーマシン", price: 69800 },
+  { id: 506, cat: "調理・キッチン", maker: "T-fal", name: "電気ケトル ジャスティンプラス 1.2L", price: 4980 },
+
+  // 掃除機・美容家電
+  { id: 601, cat: "掃除機・美容家電", maker: "Dyson", name: "V12 Detect Slim コードレス掃除機", price: 79800 },
+  { id: 602, cat: "掃除機・美容家電", maker: "iRobot", name: "ルンバ j7+ ロボット掃除機", price: 118000 },
+  { id: 603, cat: "掃除機・美容家電", maker: "Shark", name: "EVOPOWER SYSTEM スティック掃除機", price: 54800 },
+  { id: 604, cat: "掃除機・美容家電", maker: "Panasonic", name: "ヘアードライヤー ナノケア EH-NA0J", price: 38610 },
+  { id: 605, cat: "掃除機・美容家電", maker: "ReFa", name: "ビューテック ドライヤープロ", price: 43000 },
+  { id: 606, cat: "掃除機・美容家電", maker: "BRAUN", name: "シリーズ9 Pro 電気シェーバー", price: 49800 },
+  { id: 607, cat: "掃除機・美容家電", maker: "PHILIPS", name: "ソニッケアー 電動歯ブラシ", price: 24800 },
+
+  // スマホ・カメラ・時計
+  { id: 701, cat: "スマホ・カメラ・時計", maker: "Apple", name: "iPhone 16 Pro 256GB SIMフリー", price: 174800 },
+  { id: 702, cat: "スマホ・カメラ・時計", maker: "Apple", name: "iPhone 16 128GB SIMフリー", price: 124800 },
+  { id: 703, cat: "スマホ・カメラ・時計", maker: "Google", name: "Pixel 9 128GB SIMフリー", price: 128900 },
+  { id: 704, cat: "スマホ・カメラ・時計", maker: "Apple", name: "Apple Watch Series 10 GPS", price: 59800 },
+  { id: 705, cat: "スマホ・カメラ・時計", maker: "SONY", name: "WF-1000XM5 ワイヤレスイヤホン", price: 36300 },
+  { id: 706, cat: "スマホ・カメラ・時計", maker: "SONY", name: "α7 IV ミラーレス一眼 ボディ", price: 328900 },
+  { id: 707, cat: "スマホ・カメラ・時計", maker: "Canon", name: "EOS R10 レンズキット", price: 148500 },
+  { id: 708, cat: "スマホ・カメラ・時計", maker: "CASIO", name: "G-SHOCK 電波ソーラー 腕時計", price: 26400 },
+
+  // ゲーム・ホビー
+  { id: 801, cat: "ゲーム・ホビー", maker: "任天堂", name: "Nintendo Switch 有機ELモデル", price: 37980 },
+  { id: 802, cat: "ゲーム・ホビー", maker: "SIE", name: "PlayStation 5 本体 (通常版)", price: 79980 },
+  { id: 803, cat: "ゲーム・ホビー", maker: "任天堂", name: "Switch 新作ソフト各種", price: 6578 },
+  { id: 804, cat: "ゲーム・ホビー", maker: "BANDAI", name: "HG 1/144 ガンプラ各種", price: 2420 },
+  { id: 805, cat: "ゲーム・ホビー", maker: "BANDAI", name: "MG 1/100 マスターグレード各種", price: 5500 },
+  { id: 806, cat: "ゲーム・ホビー", maker: "タカラトミー", name: "トミカ 定番ミニカー各種", price: 550 },
+  { id: 807, cat: "ゲーム・ホビー", maker: "KATO", name: "Nゲージ 鉄道模型基本セット", price: 18700 },
+
+  // 電池・消耗品・日用品
+  { id: 901, cat: "電池・消耗品・日用品", maker: "Panasonic", name: "エボルタNEO 単3乾電池 12本", price: 1580 },
+  { id: 902, cat: "電池・消耗品・日用品", maker: "ELECOM", name: "USB-C 急速充電器 65W", price: 4480 },
+  { id: 903, cat: "電池・消耗品・日用品", maker: "Anker", name: "モバイルバッテリー 10000mAh", price: 3990 },
+  { id: 904, cat: "電池・消耗品・日用品", maker: "Panasonic", name: "LED電球 60形相当 2個パック", price: 1980 },
+  { id: 905, cat: "電池・消耗品・日用品", maker: "EPSON", name: "純正インクカートリッジ 6色パック", price: 7480 },
+  { id: 906, cat: "電池・消耗品・日用品", maker: "花王", name: "アタックZERO 洗濯洗剤 詰替特大", price: 1280 }
+];
+
+let products = [];
+let cart = [];
+let discountRate = 0;
+let currentCat = "すべて";
+let salesTotal = 0;
+let soundEnabled = true;
+let audioCtx = null;
+
+function initStorage() {
+  try {
+    const savedVer = localStorage.getItem("pos_catalog_ver");
+    const savedProds = JSON.parse(localStorage.getItem("pos_products_v9"));
+    if (savedVer === CATALOG_VERSION && Array.isArray(savedProds) && savedProds.length > 0) {
+      products = savedProds;
+    } else {
+      products = [...DEFAULT_PRODUCTS];
+      localStorage.setItem("pos_catalog_ver", CATALOG_VERSION);
+      localStorage.setItem("pos_products_v9", JSON.stringify(products));
+    }
+    salesTotal = parseInt(localStorage.getItem("pos_sales_v9") || "0", 10);
+  } catch (e) {
+    products = [...DEFAULT_PRODUCTS];
+  }
+}
+
+function forceResetProducts() {
+  if (!confirm("商品リストを初期状態（全65品目の家電・PC）に戻しますか？")) return;
+  products = [...DEFAULT_PRODUCTS];
+  try {
+    localStorage.setItem("pos_catalog_ver", CATALOG_VERSION);
+    localStorage.setItem("pos_products_v9", JSON.stringify(products));
+  } catch (e) {}
+  currentCat = "すべて";
+  document.getElementById("searchInput").value = "";
+  renderTabs();
+  renderProducts();
+  playBeep(660, 0.08);
+}
+
+function playBeep(freq, duration, type = "sine") {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+function playRegisterBell() {
+  if (!soundEnabled) return;
+  playBeep(1046.5, 0.12, "triangle");
+  setTimeout(() => playBeep(1318.5, 0.35, "triangle"), 110);
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById("soundBtn").textContent = soundEnabled ? "🔊 音:ON" : "🔇 音:OFF";
+  if (soundEnabled) playBeep(880, 0.08);
+}
+
+function renderTabs() {
+  const cats = ["すべて", ...new Set(products.map(p => p.cat))];
+  const container = document.getElementById("catTabs");
+  container.innerHTML = "";
+  cats.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "cat-tab" + (c === currentCat ? " active" : "");
+    btn.textContent = c;
+    btn.onclick = () => {
+      currentCat = c;
+      renderTabs();
+      renderProducts();
+      playBeep(700, 0.04);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function renderProducts() {
+  const kw = document.getElementById("searchInput").value.trim().toLowerCase();
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
+
+  const filtered = products.filter(p => {
+    const matchCat = currentCat === "すべて" || p.cat === currentCat;
+    const matchKw = !kw || p.name.toLowerCase().includes(kw) || p.maker.toLowerCase().includes(kw) || p.cat.toLowerCase().includes(kw);
+    return matchCat && matchKw;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#666;padding:24px;">該当する商品がありません</div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const btn = document.createElement("button");
+    btn.className = "prod-btn";
+    btn.innerHTML = `
+      <span class="prod-maker">${p.maker}</span>
+      <span class="prod-name">${p.name}</span>
+      <span class="prod-price">${p.price.toLocaleString()}円</span>
+    `;
+    btn.onclick = () => addToCart(p);
+    grid.appendChild(btn);
+  });
+}
+
+function addNewProduct() {
+  const cat = document.getElementById("newCat").value;
+  const maker = document.getElementById("newMaker").value.trim() || "その他";
+  const name = document.getElementById("newName").value.trim();
+  const price = parseInt(document.getElementById("newPrice").value, 10);
+  if (!name || isNaN(price) || price < 0) {
+    alert("商品名と価格を正しく入力してください");
+    return;
+  }
+  products.unshift({ id: Date.now(), cat, maker, name, price });
+  try { localStorage.setItem("pos_products_v9", JSON.stringify(products)); } catch (e) {}
+  document.getElementById("newMaker").value = "";
+  document.getElementById("newName").value = "";
+  document.getElementById("newPrice").value = "";
+  renderTabs();
+  renderProducts();
+  playBeep(980, 0.08);
+}
+
+function addToCart(p) {
+  playBeep(1100, 0.06);
+  const found = cart.find(item => item.id === p.id);
+  if (found) {
+    found.qty += 1;
+  } else {
+    cart.push({ ...p, qty: 1 });
+  }
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  playBeep(600, 0.05);
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  }
+  renderCart();
+}
+
+function removeCartItem(id) {
+  playBeep(450, 0.06);
+  cart = cart.filter(i => i.id !== id);
+  renderCart();
+}
+
+function renderCart() {
+  const list = document.getElementById("cartList");
+  list.innerHTML = "";
+  let count = 0;
+  cart.forEach(item => {
+    count += item.qty;
+    const li = document.createElement("li");
+    li.className = "cart-item";
+    li.innerHTML = `
+      <div class="cart-info">
+        <div class="cart-title">[${item.maker}] ${item.name}</div>
+        <div class="cart-sub">${item.price.toLocaleString()}円 × ${item.qty} = <strong>${(item.price * item.qty).toLocaleString()}円</strong></div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="q-btn" onclick="changeQty(${item.id}, -1)">−</button>
+        <span style="min-width:20px;text-align:center;font-weight:bold;">${item.qty}</span>
+        <button class="q-btn" onclick="changeQty(${item.id}, 1)">＋</button>
+        <button class="del-btn" onclick="removeCartItem(${item.id})">削除</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+  document.getElementById("itemCount").textContent = count;
+  updateTotals();
+}
+
+function setDiscount(rate, btnEl) {
+  discountRate = rate;
+  document.querySelectorAll(".d-btn").forEach(b => b.classList.remove("active"));
+  btnEl.classList.add("active");
+  playBeep(750, 0.05);
+  updateTotals();
+}
+
+function getCalcValues() {
+  const sub = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const disc = Math.floor(sub * (discountRate / 100));
+  const total = sub - disc;
+  const points = Math.floor(total * 0.01);
+  return { sub, disc, total, points };
+}
+
+function updateTotals() {
+  const { sub, disc, total, points } = getCalcValues();
+  document.getElementById("subTotal").textContent = sub.toLocaleString();
+  document.getElementById("discAmount").textContent = disc.toLocaleString();
+  document.getElementById("finalTotal").textContent = total.toLocaleString();
+  document.getElementById("pointEarned").textContent = points.toLocaleString();
+
+  const dep = parseInt(document.getElementById("depositInput").value, 10);
+  const changeEl = document.getElementById("changeDisplay");
+  if (isNaN(dep) || dep === 0) {
+    changeEl.textContent = "0円";
+    changeEl.style.color = "#059669";
+  } else {
+    const diff = dep - total;
+    if (diff >= 0) {
+      changeEl.textContent = diff.toLocaleString() + "円";
+      changeEl.style.color = "#059669";
+    } else {
+      changeEl.textContent = "不足 " + Math.abs(diff).toLocaleString() + "円";
+      changeEl.style.color = "#dc2626";
+    }
+  }
+}
+
+function setExact() {
+  const { total } = getCalcValues();
+  document.getElementById("depositInput").value = total;
+  playBeep(800, 0.05);
+  updateTotals();
+}
+
+function addCash(amt) {
+  const cur = parseInt(document.getElementById("depositInput").value || "0", 10);
+  document.getElementById("depositInput").value = cur + amt;
+  playBeep(800, 0.05);
+  updateTotals();
+}
+
+function clearCash() {
+  document.getElementById("depositInput").value = "";
+  playBeep(500, 0.05);
+  updateTotals();
+}
+
+function clearCart() {
+  cart = [];
+  document.getElementById("depositInput").value = "";
+  playBeep(450, 0.07);
+  renderCart();
+}
+
+function checkout() {
+  const { sub, disc, total, points } = getCalcValues();
+  if (total === 0) {
+    alert("商品が選択されていません");
+    return;
+  }
+  const dep = parseInt(document.getElementById("depositInput").value || "0", 10);
+  const paid = dep > 0 ? dep : total;
+  if (paid < total) {
+    alert("お預かり金額が不足しています");
+    return;
+  }
+  const change = paid - total;
+
+  salesTotal += total;
+  try { localStorage.setItem("pos_sales_v9", String(salesTotal)); } catch (e) {}
+  document.getElementById("salesTotal").textContent = salesTotal.toLocaleString();
+
+  playRegisterBell();
+
+  const now = new Date();
+  document.getElementById("recDate").textContent = now.toLocaleString("ja-JP");
+  let lines = cart.map(i => `${i.maker} ${i.name}<br>&nbsp;&nbsp;${i.price.toLocaleString()}円 × ${i.qty} = ${(i.price * i.qty).toLocaleString()}円`).join("<br>");
+  lines += `<hr style="border:none;border-top:1px dashed #333;margin:8px 0;">`;
+  lines += `小計: ${sub.toLocaleString()}円<br>`;
+  if (disc > 0) lines += `割引(${discountRate}%): -${disc.toLocaleString()}円<br>`;
+  lines += `<strong>合計: ${total.toLocaleString()}円</strong><br>`;
+  lines += `お預かり: ${paid.toLocaleString()}円<br>`;
+  lines += `<strong>お釣り: ${change.toLocaleString()}円</strong><br>`;
+  lines += `今回進呈ポイント: ${points.toLocaleString()} pt`;
+
+  document.getElementById("recBody").innerHTML = lines;
+  document.getElementById("receiptModal").style.display = "flex";
+}
+
+function closeReceipt() {
+  document.getElementById("receiptModal").style.display = "none";
+  cart = [];
+  document.getElementById("depositInput").value = "";
+  renderCart();
+}
+
+function resetSales() {
+  if (!confirm("売上累計を0円にリセットしますか？")) return;
+  salesTotal = 0;
+  try { localStorage.setItem("pos_sales_v9", "0"); } catch (e) {}
+  document.getElementById("salesTotal").textContent = "0";
+}
+
+initStorage();
+document.getElementById("salesTotal").textContent = salesTotal.toLocaleString();
+renderTabs();
+renderProducts();
+renderCart();
+</script>
+</body>
+</html>
