@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ジョーシン レジアプリ（実商品名・割引・ポイント対応）</title>
+  <style>
+    :root {
+      --primary: #d9001b;
+      --primary-dark: #a80015;
+      --accent: #005bac;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Meiryo", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+      user-select: none;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(217, 0, 27, 0.25);
+    }
+    header h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.5px; }
+    .sound-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.5);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .sound-btn.off { background: rgba(0,0,0,0.3); color: #cbd5e1; }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tab {
+      background: #e2e8f0;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #475569;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 8px;
+      max-height: 430px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .product-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 76px;
+      transition: transform 0.08s, background 0.1s;
+    }
+    .product-card:active {
+      transform: scale(0.95);
+      background: #e0f2fe;
+      border-color: var(--accent);
+    }
+    .p-cat {
+      font-size: 0.65rem;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .p-name {
+      font-weight: bold;
+      font-size: 0.85rem;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .p-price {
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .add-box {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed #cbd5e1;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .add-box input, .add-box select {
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .add-box input[type="text"] { flex: 2; min-width: 120px; }
+    .add-box input[type="number"] { flex: 1; min-width: 80px; }
+    .btn-add {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .cart-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 10px 0;
+      max-height: 190px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fafafa;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .qty-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .del-btn {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .discount-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .discount-bar span { font-size: 0.8rem; font-weight: bold; margin-right: 4px; }
+    .disc-btn {
+      padding: 5px 9px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .disc-btn.active {
+      background: #fef08a;
+      border-color: #eab308;
+      color: #854d0e;
+    }
+    .summary-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .s-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+    .s-row.total {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--primary);
+      border-top: 1px solid #cbd5e1;
+      padding-top: 6px;
+    }
+    .point-badge {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #c2410c;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .quick-cash {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .cash-btn {
+      background: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .cash-btn:active { background: #cbd5e1; }
+    .deposit-input {
+      width: 130px;
+      padding: 6px 8px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-align: right;
+      border: 1.5px solid #94a3b8;
+      border-radius: 6px;
+    }
+    .change-val {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #059669;
+    }
+    .action-btns {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 8px;
+    }
+    .btn-clear {
+      background: white;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-pay {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-pay:active { background: var(--primary-dark); }
+    .sales-footer {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.8rem;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🛒 ジョーシン レジシステム</h1>
+  <button id="soundToggle" class="sound-btn" onclick="toggleSound()">🔊 音：ON</button>
+</header>
+
+<div class="layout">
+  <!-- 商品選択エリア -->
+  <div class="panel">
+    <div id="categoryTabs" class="tabs"></div>
+    <div id="productGrid" class="product-grid"></div>
+
+    <div class="add-box">
+      <select id="newCat">
+        <option value="家電">家電</option>
+        <option value="パソコン・スマホ">パソコン・スマホ</option>
+        <option value="ゲーム・ホビー">ゲーム・ホビー</option>
+        <option value="日用品・電池">日用品・電池</option>
+      </select>
+      <input type="text" id="newName" placeholder="新しい商品名">
+      <input type="number" id="newPrice" placeholder="価格(円)">
+      <button class="btn-add" onclick="addNewProduct()">＋追加</button>
+    </div>
+  </div>
+
+  <!-- お会計エリア -->
+  <div class="panel">
+    <div class="cart-header">
+      <span>🧾 お買上げ明細</span>
+      <span id="itemCount" style="font-size:0.85rem; color:#64748b;">0点</span>
+    </div>
+    <ul id="cartList" class="cart-list"></ul>
+
+    <div class="discount-bar">
+      <span>割引:</span>
+      <button class="disc-btn active" onclick="setDiscount(0, this)">なし</button>
+      <button class="disc-btn" onclick="setDiscount(5, this)">5%OFF</button>
+      <button class="disc-btn" onclick="setDiscount(10, this)">10%OFF</button>
+      <button class="disc-btn" onclick="setDiscount(20, this)">20%OFF</button>
+    </div>
+
+    <div class="point-badge">
+      <span>ジョーシンポイント還元 (1%)</span>
+      <span id="pointEarned">0 pt</span>
+    </div>
+
+    <div class="summary-box">
+      <div class="s-row">
+        <span>小計</span>
+        <span id="subTotal">0 円</span>
+      </div>
+      <div class="s-row" id="discRow" style="display:none; color:#d9001b;">
+        <span>割引額</span>
+        <span id="discAmount">-0 円</span>
+      </div>
+      <div class="s-row total">
+        <span>お会計合計</span>
+        <span id="finalTotal">0 円</span>
+      </div>
+      <div class="quick-cash">
+        <button class="cash-btn" onclick="setExactCash()">ちょうど</button>
+        <button class="cash-btn" onclick="addCash(1000)">+1,000円</button>
+        <button class="cash-btn" onclick="addCash(5000)">+5,000円</button>
+        <button class="cash-btn" onclick="addCash(10000)">+10,000円</button>
+      </div>
+      <div class="s-row">
+        <span>お預かり</span>
+        <input type="number" id="depositInput" class="deposit-input" placeholder="0" oninput="updateSummary()">
+      </div>
+      <div class="s-row" style="margin-bottom:0;">
+        <span>お釣り</span>
+        <span id="changeAmount" class="change-val">0 円</span>
+      </div>
+    </div>
+
+    <div class="action-btns">
+      <button class="btn-clear" onclick="clearCart()">クリア</button>
+      <button class="btn-pay" onclick="completePayment()">会計完了</button>
+    </div>
+
+    <div class="sales-footer">
+      <span>本日売上: <strong id="dailySales">0</strong>円 (<span id="dailyCount">0</span>件)</span>
+      <button onclick="resetSales()" style="border:none; background:none; color:#64748b; text-decoration:underline; cursor:pointer; font-size:0.75rem;">売上リセット</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const initialProducts = [
+    // ゲーム・ホビー
+    { id: 1, cat: 'ゲーム・ホビー', name: 'Switch ソフト新作', price: 6578 },
+    { id: 2, cat: 'ゲーム・ホビー', name: 'PS5 ワイヤレスコントローラー', price: 9480 },
+    { id: 3, cat: 'ゲーム・ホビー', name: 'HG 1/144 ガンプラ', price: 2420 },
+    { id: 4, cat: 'ゲーム・ホビー', name: 'トミカ 定番ミニカー', price: 550 },
+    { id: 5, cat: 'ゲーム・ホビー', name: 'プラレール 車両セット', price: 2640 },
+    { id: 6, cat: 'ゲーム・ホビー', name: 'ポケモンカード 拡張パック', price: 180 },
+    { id: 7, cat: 'ゲーム・ホビー', name: 'ニッパー・模型用工具', price: 1320 },
+    { id: 8, cat: 'ゲーム・ホビー', name: 'Nゲージ 鉄道模型車両', price: 7920 },
+    // 家電
+    { id: 9, cat: '家電', name: 'パナソニック ヘアードライヤー', price: 14800 },
+    { id: 10, cat: '家電', name: 'ティファール 電気ケトル 1.0L', price: 4980 },
+    { id: 11, cat: '家電', name: '象印 IH炊飯ジャー 5.5合', price: 24800 },
+    { id: 12, cat: '家電', name: 'ダイソン コードレス掃除機', price: 49800 },
+    { id: 13, cat: '家電', name: 'シャープ 加湿空気清浄機', price: 29800 },
+    { id: 14, cat: '家電', name: 'ブラウン 電動歯ブラシ', price: 6980 },
+    { id: 15, cat: '家電', name: 'LEDシーリングライト 8畳用', price: 7980 },
+    { id: 16, cat: '家電', name: '単機能電子レンジ 17L', price: 11800 },
+    // パソコン・スマホ
+    { id: 17, cat: 'パソコン・スマホ', name: 'ロジクール ワイヤレスマウス', price: 2980 },
+    { id: 18, cat: 'パソコン・スマホ', name: 'エプソン 純正インク6色パック', price: 7480 },
+    { id: 19, cat: 'パソコン・スマホ', name: 'USB Type-C 急速充電器 30W', price: 2480 },
+    { id: 20, cat: 'パソコン・スマホ', name: 'iPhone 保護ガラスフィルム', price: 1680 },
+    { id: 21, cat: 'パソコン・スマホ', name: 'USBメモリ 64GB', price: 1280 },
+    { id: 22, cat: 'パソコン・スマホ', name: 'HDMIケーブル 2.0m', price: 1480 },
+    { id: 23, cat: 'パソコン・スマホ', name: '完全ワイヤレスイヤホン', price: 8980 },
+    { id: 24, cat: 'パソコン・スマホ', name: 'コピー用紙 A4 500枚', price: 598 },
+    // 日用品・電池
+    { id: 25, cat: '日用品・電池', name: '単3形アルカリ乾電池 10本パック', price: 698 },
+    { id: 26, cat: '日用品・電池', name: '単4形アルカリ乾電池 10本パック', price: 698 },
+    { id: 27, cat: '日用品・電池', name: 'ボタン電池 CR2032 2個入', price: 380 },
+    { id: 28, cat: '日用品・電池', name: 'LED電球 60W形相当 2個入', price: 1180 },
+    { id: 29, cat: '日用品・電池', name: 'BOXティッシュ 5箱パック', price: 398 },
+    { id: 30, cat: '日用品・電池', name: '衣料用液体洗剤 詰替用', price: 428 },
+    { id: 31, cat: '日用品・電池', name: '延長コード 3個口 2m', price: 980 },
+    { id: 32, cat: '日用品・電池', name: '不織布マスク 50枚入', price: 548 }
+  ];
+
+  let products = [...initialProducts];
+  try {
+    const saved = localStorage.getItem('joshin_real_products');
+    if (saved) products = JSON.parse(saved);
+  } catch (e) {}
+
+  let cart = [];
+  let currentCat = 'すべて';
+  let discountRate = 0;
+  let soundEnabled = true;
+  let dailyTotal = 0;
+  let dailyCount = 0;
+
+  try {
+    const s = JSON.parse(localStorage.getItem('joshin_real_sales'));
+    if (s) { dailyTotal = s.total || 0; dailyCount = s.count || 0; }
+  } catch (e) {}
+
+  // 効果音システム (Web Audio API)
+  let audioCtx = null;
+  function playTone(type) {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'scan') {
+        // バーコードスキャナ音「ピッ！」
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2000, now);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      } else if (type === 'tap') {
+        // 操作音「ポッ」
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, now);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } else if (type === 'cash') {
+        // 会計完了ベル音「チャリーン♪」
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1318.5, now); // E6
+        osc.frequency.setValueAtTime(1975.5, now + 0.09); // B6
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      }
+    } catch (e) {}
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('soundToggle');
+    btn.textContent = soundEnabled ? '🔊 音：ON' : '🔇 音：OFF';
+    btn.className = soundEnabled ? 'sound-btn' : 'sound-btn off';
+    if (soundEnabled) playTone('tap');
+  }
+
+  function renderTabs() {
+    const cats = ['すべて', 'ゲーム・ホビー', '家電', 'パソコン・スマホ', '日用品・電池'];
+    const wrap = document.getElementById('categoryTabs');
+    wrap.innerHTML = '';
+    cats.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'tab' + (currentCat === c ? ' active' : '');
+      b.textContent = c;
+      b.onclick = () => {
+        playTone('tap');
+        currentCat = c;
+        renderTabs();
+        renderProducts();
+      };
+      wrap.appendChild(b);
+    });
+  }
+
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = '';
+    const filtered = currentCat === 'すべて' ? products : products.filter(p => p.cat === currentCat);
+    filtered.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div class="p-cat">${p.cat}</div>
+        <div class="p-name">${p.name}</div>
+        <div class="p-price">${p.price.toLocaleString()}円</div>
+      `;
+      card.onclick = () => addToCart(p);
+      grid.appendChild(card);
+    });
+  }
+
+  function addNewProduct() {
+    const cat = document.getElementById('newCat').value;
+    const name = document.getElementById('newName').value.trim();
+    const price = parseInt(document.getElementById('newPrice').value, 10);
+    if (!name || isNaN(price) || price < 0) return alert('商品名と価格を入力してください');
+    playTone('tap');
+    products.unshift({ id: Date.now(), cat, name, price });
+    try { localStorage.setItem('joshin_real_products', JSON.stringify(products)); } catch (e) {}
+    document.getElementById('newName').value = '';
+    document.getElementById('newPrice').value = '';
+    renderProducts();
+  }
+
+  function addToCart(p) {
+    playTone('scan');
+    const found = cart.find(i => i.id === p.id);
+    if (found) found.qty++;
+    else cart.push({ ...p, qty: 1 });
+    renderCart();
+  }
+
+  function changeQty(id, delta) {
+    playTone('tap');
+    const found = cart.find(i => i.id === id);
+    if (!found) return;
+    found.qty += delta;
+    if (found.qty <= 0) cart = cart.filter(i => i.id !== id);
+    renderCart();
+  }
+
+  function removeItem(id) {
+    playTone('tap');
+    cart = cart.filter(i => i.id !== id);
+    renderCart();
+  }
+
+  function setDiscount(rate, btn) {
+    playTone('tap');
+    discountRate = rate;
+    document.querySelectorAll('.disc-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateSummary();
+  }
+
+  function renderCart() {
+    const list = document.getElementById('cartList');
+    list.innerHTML = '';
+    let count = 0;
+    cart.forEach(item => {
+      count += item.qty;
+      const li = document.createElement('li');
+      li.className = 'cart-item';
+      li.innerHTML = `
+        <div style="flex:1; padding-right:6px;">
+          <div style="font-weight:bold;">${item.name}</div>
+          <div style="font-size:0.75rem; color:#64748b;">@${item.price.toLocaleString()}円</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+          <span style="min-width:18px; text-align:center; font-weight:bold;">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+          <span style="min-width:65px; text-align:right; font-weight:bold;">${(item.price * item.qty).toLocaleString()}円</span>
+          <button class="del-btn" onclick="removeItem(${item.id})">削除</button>
+        </div>
+      `;
+      list.appendChild(li);
+    });
+    document.getElementById('itemCount').textContent = `${count}点`;
+    updateSummary();
+  }
+
+  function getTotals() {
+    const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const disc = Math.floor(sub * (discountRate / 100));
+    const total = sub - disc;
+    const pts = Math.floor(total * 0.01);
+    return { sub, disc, total, pts };
+  }
+
+  function updateSummary() {
+    const { sub, disc, total, pts } = getTotals();
+    document.getElementById('subTotal').textContent = `${sub.toLocaleString()} 円`;
+    const discRow = document.getElementById('discRow');
+    if (disc > 0) {
+      discRow.style.display = 'flex';
+      document.getElementById('discAmount').textContent = `-${disc.toLocaleString()} 円 (${discountRate}%OFF)`;
+    } else {
+      discRow.style.display = 'none';
+    }
+    document.getElementById('finalTotal').textContent = `${total.toLocaleString()} 円`;
+    document.getElementById('pointEarned').textContent = `${pts.toLocaleString()} pt`;
+
+    const dep = parseInt(document.getElementById('depositInput').value, 10);
+    const chgEl = document.getElementById('changeAmount');
+    if (isNaN(dep) || dep === 0) {
+      chgEl.textContent = '0 円';
+      chgEl.style.color = '#059669';
+    } else {
+      const diff = dep - total;
+      if (diff >= 0) {
+        chgEl.textContent = `${diff.toLocaleString()} 円`;
+        chgEl.style.color = '#059669';
+      } else {
+        chgEl.textContent = `不足 ${Math.abs(diff).toLocaleString()} 円`;
+        chgEl.style.color = '#dc2626';
+      }
+    }
+  }
+
+  function setExactCash() {
+    playTone('tap');
+    const { total } = getTotals();
+    document.getElementById('depositInput').value = total;
+    updateSummary();
+  }
+
+  function addCash(amount) {
+    playTone('tap');
+    const cur = parseInt(document.getElementById('depositInput').value, 10) || 0;
+    document.getElementById('depositInput').value = cur + amount;
+    updateSummary();
+  }
+
+  function clearCart() {
+    playTone('tap');
+    cart = [];
+    document.getElementById('depositInput').value = '';
+    renderCart();
+  }
+
+  function completePayment() {
+    const { total, pts } = getTotals();
+    if (total === 0) return alert('商品が選択されていません');
+    const dep = parseInt(document.getElementById('depositInput').value, 10);
+    if (!isNaN(dep) && dep > 0 && dep < total) {
+      return alert('お預かり金額が不足しています');
+    }
+    playTone('cash');
+    dailyTotal += total;
+    dailyCount += 1;
+    try { localStorage.setItem('joshin_real_sales', JSON.stringify({ total: dailyTotal, count: dailyCount })); } catch (e) {}
+    updateSalesUI();
+    const change = (!isNaN(dep) && dep >= total) ? dep - total : 0;
+    alert(`ありがとうございました！
+お会計: ${total.toLocaleString()}円
+お釣り: ${change.toLocaleString()}円
+付与ポイント: ${pts}pt`);
+    cart = [];
+    document.getElementById('depositInput').value = '';
+    renderCart();
+  }
+
+  function updateSalesUI() {
+    document.getElementById('dailySales').textContent = dailyTotal.toLocaleString();
+    document.getElementById('dailyCount').textContent = dailyCount;
+  }
+
+  function resetSales() {
+    if (confirm('本日の売上集計をリセットしますか？')) {
+      playTone('tap');
+      dailyTotal = 0;
+      dailyCount = 0;
+      try { localStorage.setItem('joshin_real_sales', JSON.stringify({ total: 0, count: 0 })); } catch (e) {}
+      updateSalesUI();
+    }
+  }
+
+  renderTabs();
+  renderProducts();
+  renderCart();
+  updateSalesUI();
+</script>
+</body>
+</html>
